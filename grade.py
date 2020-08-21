@@ -1,5 +1,8 @@
+from autograder import Autograder
+
 def main():
     # create new autograder object from config
+    autograder = Autograder("../autograder_config.yml")
     
     # try to compile student code
     

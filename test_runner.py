@@ -11,3 +11,14 @@ class TestRunner():
     @classmethod
     def run_test(self):
         raise NotImplementedError
+
+    def assertEqual(self, expected, value, msg=None, fmt=None):
+        if expected != value:
+            if msg:
+                return (False, msg)
+            elif fmt:
+                return (False, fmt.format(expected.value))
+            else:
+                return (False, "Expected output of {}, got {}".format(expected, value))
+        else:
+            return (True, None)

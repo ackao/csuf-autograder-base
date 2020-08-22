@@ -1,5 +1,6 @@
 import yaml
 import os, subprocess
+from blackboxtest_runner import BlackBoxTestRunner
 from cppcompiletest_runner import CppCompileTestRunner
 from linter import CppLinter
 
@@ -31,6 +32,7 @@ class Autograder():
         # Init by parsing YAML config
         with open(config, 'r') as file:
             cfg = yaml.safe_load(file)
+            print(cfg)
 
             self.language = cfg['language']
             self.test_framework = cfg['test_framework']
@@ -40,6 +42,7 @@ class Autograder():
             self.linter = None
             self.formatter = None
             self.code = cfg['code']
+            self.tester = None
 
             if self.language == 'c++':
                 self.compiler =  CppCompileTestRunner(self.code, self.code_dir, self.build_dir)
@@ -48,6 +51,9 @@ class Autograder():
                 if 'formatter' in cfg and cfg['formatter']:
                     # TODO: fix
                     self.formatter = None
+
+            if self.test_framework == 'blackbox':
+                self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)
 
     def __str__(self):
         return "Autograder object(language={}, test_framework={}, linter={}, formatter={}, code_dir={}".format(

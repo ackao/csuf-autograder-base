@@ -38,6 +38,9 @@ def main():
     # run formatter
 
     # run test cases (get json output from googletest)
+    autograder.tester.run_test()
+    if DEBUG:
+        print(autograder.tester.results)
 
     # create json object with overall results and write to results directory
     return

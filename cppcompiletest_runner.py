@@ -10,48 +10,48 @@ class CppCompileTestRunner(TestRunner):
     results = []
     compile_commands = []
 
-    def __init__(self, code_dir):
+    def __init__(self, code, code_dir):
+        self.code = code
         self.code_dir = code_dir
         super().__init__()
 
     def run_test(self):
-        with open('../tests/compile_test', 'r') as file:
-            objs = yaml.load_all(file, Loader=yaml.FullLoader)
+        for obj in self.code:
+            srcs = [obj['main']]
+            if 'implems' in obj:
+                srcs += obj['implems']
 
-            for obj in objs:
-                srcs = obj['sources']
-                max_score = 0
-                if 'points' in obj:
-                    max_score = obj['points']
+            max_score = 0
+            if 'compile_points' in obj:
+                max_score = obj['compile_points']
 
+            # Check that all files are present
+            missing_srcs = []
+            for src in srcs:
+                if not os.path.isfile(os.path.join(self.code_dir, src)):
+                    missing_srcs += src
 
-                # Check that all files are present
-                missing_srcs = []
-                for src in srcs:
-                    if not os.path.isfile(os.path.join(self.code_dir, src)):
-                        missing_srcs += src
+            if missing_srcs != []:
+                msg = "Required file(s) are missing: {}".format(missing_srcs)
+                score = 0
+            else: # Compile
+                cmd = ["g++"] + srcs
+                self.add_compile_command_json(file=obj['main'], command=" ".join(cmd))
+                process = subprocess.run(cmd, cwd=self.code_dir)
 
-                if missing_srcs != []:
-                    msg = "Required file(s) are missing: {}".format(missing_srcs)
+                if process.returncode != 0:
+                    msg = "Compilation failed: {}".format(" ".join(cmd))
                     score = 0
-                else: # Compile
-                    cmd = ["g++"] + srcs
-                    self.add_compile_command_json(file=srcs[0], command=" ".join(cmd))
-                    process = subprocess.run(cmd, cwd=self.code_dir)
-
-                    if process.returncode != 0:
-                        msg = "Compilation failed: {}".format(" ".join(cmd))
-                        score = 0
-                    else:
-                        msg = "Compilation succeeded: {}".format(" ".join(cmd))
-                        score = max_score
+                else:
+                    msg = "Compilation succeeded: {}".format(" ".join(cmd))
+                    score = max_score
 
 
-                self.results.append(make_test_output(test_name="Compilation Test",
-                                            score=score,
-                                            max_score=max_score,
-                                            output=msg,
-                                            visibility="visible"))
+            self.results.append(make_test_output(test_name="Compilation Test",
+                                        score=score,
+                                        max_score=max_score,
+                                        output=msg,
+                                        visibility="visible"))
 
     def add_compile_command_json(self, file="", command=""):
         self.compile_commands.append({

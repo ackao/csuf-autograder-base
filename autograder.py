@@ -35,17 +35,17 @@ class Autograder():
             self.language = cfg['language']
             self.test_framework = cfg['test_framework']
             self.code_dir = code_dir
-
             self.linter = None
-            if 'linter' in cfg and cfg['linter']['enabled']:
-                self.linter = CppLinter(self.code_dir, cfg['linter']['points'])
-
             self.formatter = None
-            if 'formatter' in cfg and cfg['formatter']['enabled']:
-                self.formatter = cfg['formatter']['points']
+            self.code = cfg['code']
 
             if self.language == 'c++':
-                self.compiler =  CppCompileTestRunner(self.code_dir)
+                self.compiler =  CppCompileTestRunner(self.code, self.code_dir)
+                if 'linter' in cfg and cfg['linter']:
+                    self.linter = CppLinter(self.code, self.code_dir)
+                if 'formatter' in cfg and cfg['formatter']:
+                    # TODO: fix
+                    self.formatter = None
 
     def __str__(self):
         return "Autograder object(language={}, test_framework={}, linter={}, formatter={}, code_dir={}".format(

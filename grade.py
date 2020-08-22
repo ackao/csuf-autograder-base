@@ -1,6 +1,8 @@
 from autograder import Autograder
 import json, os, shutil
 
+DEBUG = False
+
 def main():
     CWD = os.getcwd()
     TMP_FOLDER = os.path.join(CWD, 'tmp')
@@ -20,12 +22,16 @@ def main():
 
     # try to compile student code -- results are in autograder.compiler.results
     autograder.compiler.run_test()
+    if DEBUG:
+        print(autograder.compiler.results)
     with open(os.path.join(TMP_FOLDER, 'compile_commands.json'), 'w+') as outfile:
         json.dump(autograder.compiler.compile_commands, outfile)
 
     # run linter
     if autograder.linter:
         autograder.linter.run_test()
+        if DEBUG:
+            print(autograder.linter.results)
 
     # run formatter
 

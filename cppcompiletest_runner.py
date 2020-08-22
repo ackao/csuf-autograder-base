@@ -44,7 +44,7 @@ class CppCompileTestRunner(TestRunner):
                     msg = "Compilation failed: {}".format(" ".join(cmd))
                     score = 0
                 else:
-                    msg = "Compilation succeeded: {}".format(" ".join(cmd))
+                    msg = "Compilation succeeded: {}".format(obj['main'])
                     score = max_score
 
             if max_score > 0:

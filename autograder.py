@@ -29,11 +29,13 @@ class Autograder():
 
     """
 
-    def __init__(self, config, code_dir, build_dir):
+    def __init__(self, config, code_dir, build_dir, debug=False):
         # Init by parsing YAML config
         with open(config, 'r') as file:
             cfg = yaml.safe_load(file)
-            print(cfg)
+            self.DEBUG = debug
+            if self.DEBUG:
+                print(cfg)
 
             self.language = cfg['language']
             self.test_framework = cfg['test_framework']

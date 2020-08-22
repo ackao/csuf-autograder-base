@@ -1,7 +1,7 @@
 from autograder import Autograder
 import json, os, shutil
 
-DEBUG = True
+DEBUG = False
 
 def main():
     CWD = os.getcwd()
@@ -10,13 +10,9 @@ def main():
     BUILD_FOLDER = os.path.join(TMP_FOLDER, 'build')
 
     # copy student code from /autograder/submission to a temp folder
-    # shutil.copytree('/autograder/submission/', TMP_FOLDER)
-
-    # temporary hack for testing inside cs50 ide (no access to root directory)
-    # TODO: get rid of this for real autograder
     if os.path.exists(TMP_FOLDER):
         shutil.rmtree(TMP_FOLDER)
-    shutil.copytree('/home/ubuntu/autograder/submission/', STUDENT_SRC_FOLDER)
+    shutil.copytree('/autograder/submission/', STUDENT_SRC_FOLDER)
     os.mkdir(BUILD_FOLDER)
 
     # create new autograder object from config
@@ -43,9 +39,7 @@ def main():
         print(autograder.tester.results)
 
     # create json object with overall results and write to results directory
-    #with open('/autograder/results/results.json', 'w+') as outfile:
-    # TODO: get rid of this for real autograder
-    with open('/home/ubuntu/autograder/results/results.json', 'w+') as outfile:
+    with open('/autograder/results/results.json', 'w+') as outfile:
         outfile.write(autograder.make_json())
 
 

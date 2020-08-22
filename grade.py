@@ -43,7 +43,11 @@ def main():
         print(autograder.tester.results)
 
     # create json object with overall results and write to results directory
-    return
+    #with open('/autograder/results/results.json', 'w+') as outfile:
+    # TODO: get rid of this for real autograder
+    with open('/home/ubuntu/autograder/results/results.json', 'w+') as outfile:
+        outfile.write(autograder.make_json())
+
 
 if __name__ == '__main__':
     main()

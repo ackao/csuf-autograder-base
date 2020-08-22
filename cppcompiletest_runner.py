@@ -47,12 +47,12 @@ class CppCompileTestRunner(TestRunner):
                     msg = "Compilation succeeded: {}".format(" ".join(cmd))
                     score = max_score
 
-
-            self.results.append(make_test_output(test_name="Compilation Test",
-                                        score=score,
-                                        max_score=max_score,
-                                        output=msg,
-                                        visibility="visible"))
+            if max_score > 0:
+                self.results.append(make_test_output(test_name="Compilation Test",
+                                    score=score,
+                                    max_score=max_score,
+                                    output=msg,
+                                    visibility="visible"))
 
     def add_compile_command_json(self, file="", command=""):
         self.compile_commands.append({

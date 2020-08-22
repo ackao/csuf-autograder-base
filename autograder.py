@@ -1,3 +1,4 @@
+import json
 import yaml
 import os, subprocess
 from blackboxtest_runner import BlackBoxTestRunner
@@ -62,3 +63,18 @@ class Autograder():
             self.linter,
             self.formatter,
             self.code_dir)
+
+    def make_json(self):
+        tests = self.compiler.results
+        if self.linter:
+            tests += self.linter.results
+        if self.formatter:
+            tests += self.formatter.results
+        tests += self.tester.results
+
+        o = {
+            "visibility" : "visible",
+            "stdout_visibility": "visible",
+            "tests": tests
+        }
+        return json.dumps(o)

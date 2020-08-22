@@ -4,15 +4,16 @@ import os
 import subprocess
 
 from test_runner import TestRunner
-from util import make_test_output
+from util import make_test_output, get_executable_name
 
 class CppCompileTestRunner(TestRunner):
     results = []
     compile_commands = []
 
-    def __init__(self, code, code_dir):
+    def __init__(self, code, code_dir, build_dir):
         self.code = code
         self.code_dir = code_dir
+        self.build_dir = build_dir
         super().__init__()
 
     def run_test(self):
@@ -35,7 +36,7 @@ class CppCompileTestRunner(TestRunner):
                 msg = "Required file(s) are missing: {}".format(missing_srcs)
                 score = 0
             else: # Compile
-                cmd = ["g++"] + srcs
+                cmd = ["g++", "-o", get_executable_name(obj['main'], build_dir=self.build_dir)] + srcs
                 self.add_compile_command_json(file=obj['main'], command=" ".join(cmd))
                 process = subprocess.run(cmd, cwd=self.code_dir)
 

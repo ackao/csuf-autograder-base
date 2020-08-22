@@ -27,7 +27,7 @@ class Autograder():
 
     """
 
-    def __init__(self, config, code_dir):
+    def __init__(self, config, code_dir, build_dir):
         # Init by parsing YAML config
         with open(config, 'r') as file:
             cfg = yaml.safe_load(file)
@@ -35,12 +35,14 @@ class Autograder():
             self.language = cfg['language']
             self.test_framework = cfg['test_framework']
             self.code_dir = code_dir
+            self.build_dir = build_dir
+
             self.linter = None
             self.formatter = None
             self.code = cfg['code']
 
             if self.language == 'c++':
-                self.compiler =  CppCompileTestRunner(self.code, self.code_dir)
+                self.compiler =  CppCompileTestRunner(self.code, self.code_dir, self.build_dir)
                 if 'linter' in cfg and cfg['linter']:
                     self.linter = CppLinter(self.code, self.code_dir)
                 if 'formatter' in cfg and cfg['formatter']:

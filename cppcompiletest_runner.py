@@ -8,6 +8,7 @@ from util import make_test_output
 
 class CppCompileTestRunner(TestRunner):
     results = []
+    compile_commands = []
 
     def __init__(self, code_dir):
         self.code_dir = code_dir
@@ -35,6 +36,7 @@ class CppCompileTestRunner(TestRunner):
                     score = 0
                 else: # Compile
                     cmd = ["g++"] + srcs
+                    self.add_compile_command_json(file=srcs[0], command=" ".join(cmd))
                     process = subprocess.run(cmd, cwd=self.code_dir)
 
                     if process.returncode != 0:
@@ -44,8 +46,16 @@ class CppCompileTestRunner(TestRunner):
                         msg = "Compilation succeeded: {}".format(" ".join(cmd))
                         score = max_score
 
+
                 self.results.append(make_test_output(test_name="Compilation Test",
                                             score=score,
                                             max_score=max_score,
                                             output=msg,
                                             visibility="visible"))
+
+    def add_compile_command_json(self, file="", command=""):
+        self.compile_commands.append({
+            "directory": self.code_dir,
+            "command": command,
+            "file": file
+        })

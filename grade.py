@@ -1,17 +1,36 @@
 from autograder import Autograder
+import json, os, shutil
 
 def main():
+    CWD = os.getcwd()
+    TMP_FOLDER = os.path.join(CWD, 'tmp')
+    STUDENT_SRC_FOLDER = os.path.join(TMP_FOLDER, 'src')
+
+    # copy student code from /autograder/submission to a temp folder
+    # shutil.copytree('/autograder/submission/', TMP_FOLDER)
+
+    # temporary hack for testing inside cs50 ide (no access to root directory)
+    # TODO: get rid of this for real autograder
+    if os.path.exists(TMP_FOLDER):
+        shutil.rmtree(TMP_FOLDER)
+    shutil.copytree('/home/ubuntu/autograder/submission/', STUDENT_SRC_FOLDER)
+
     # create new autograder object from config
-    autograder = Autograder("../autograder_config.yml")
-    
-    # try to compile student code
-    
+    autograder = Autograder("../autograder_config.yml", STUDENT_SRC_FOLDER)
+
+    # try to compile student code -- results are in autograder.compiler.results
+    autograder.compiler.run_test()
+    with open(os.path.join(TMP_FOLDER, 'compile_commands.json'), 'w+') as outfile:
+        json.dump(autograder.compiler.compile_commands, outfile)
+
     # run linter
-    
+    if autograder.linter:
+        autograder.linter.run_test()
+
     # run formatter
-    
+
     # run test cases (get json output from googletest)
-    
+
     # create json object with overall results and write to results directory
     return
 

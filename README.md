@@ -1,67 +1,25 @@
 # csuf-autograder-base
 
-## example autograder_config.yml format
+C++ Autograder for CSUF, compatible with Gradescope
 
-```
-language: c++
-linter: true
-formatter: true
-code:
-- main: greeting/greeting.cpp
-  compile_points: 10
-  linter_points: 5
-- main: hello_world/hello_world.cpp
-  compile_points: 10
-  linter_points: 5
-- main: oops/oops.cpp
-  compile_points: 10
-  linter_points: 5
-test_framework: blackbox
+End users please see https://github.com/ackao/csuf-autograder-template instead -- do not clone this repo manually.
 
-blackbox_tests:
-- test_name: "greeting test"
-  test_types:
-    - output
-  obj: greeting
-  stdin: Bob
-  stdout: "Hi, what's your name?\nHello, Bob!\n"
-  points: 5
-- test_name: "greeting test 2"
-  test_types:
-    - output
-  obj: greeting
-  stdin: Alice
-  stdout: "Hi, what's your name?\nHello, Alice!\n"
-  points: 5
-- test_name: "greeting exit code test"
-  test_types:
-    - exitcode
-  obj: greeting
-  stdin: Alice
-  exitcode: 0
-  points: 10
-- test_name: "oops exit code test"
-  test_types:
-    - exitcode
-  obj: oops
-  exitcode: 1
-  points: 5
-- test_name: "oops output test"
-  test_types:
-    - output
-  obj: oops
-  stdout: ""
-  points: 5
-- test_name: "hello_world output test"
-  test_types:
-    - output
-  obj: hello_world
-  stdout: "Hello, everyone!\n"
-  points: 5
-- test_name: "hello_world exit code test"
-  test_types:
-    - exitcode
-  obj: hello_world
-  exitcode: 0
-  points: 5
-```
+## Features
+
+* Compile and test multiple executables with multiple source files
+* Configure visibility of test cases
+* Blackbox testing (give input on stdin; check stdout and/or exit code)
+* Optional: Check for Linter warnings via clang-tidy
+* Assign weights for test cases; optional: assign points for compilation and/or linter as well
+
+## Coming Soon
+
+* Googletest unit test support 
+* Diff student code with clang-format output
+
+## Maybe implemented one day
+
+* Support for other languages
+* Ability to register custom grading workflows
+
+Feel free to file pull requests or feature requests

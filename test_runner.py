@@ -17,7 +17,7 @@ class TestRunner():
             if msg:
                 return (False, msg)
             elif fmt:
-                return (False, fmt.format(expected.value))
+                return (False, fmt.format(expected, value))
             else:
                 return (False, "Expected output of {}, got {}".format(expected, value))
         else:

@@ -21,17 +21,22 @@ class BlackBoxTestRunner(TestRunner):
         max_score = test.get('points', 1)
         visibility = test.get('visibility', 'visible')
 
-        proc = subprocess.Popen(os.path.join(self.build_dir, test['obj']), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.build_dir)
-        stdin = str.encode(test.get('stdin', ""))
+        filepath = os.path.join(self.build_dir, test['obj'])
+        if os.exists(filepath): 
+            proc = subprocess.Popen(filepath, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.build_dir)
+            stdin = str.encode(test.get('stdin', ""))
 
-        output, err = proc.communicate(stdin, test.get('timeout', 1))
+            output, err = proc.communicate(stdin, test.get('timeout', 1))
 
-        if 'output' in test['test_types']:
-            expected_output = str.encode(test.get('stdout', ""))
-            (result, msg) = self.assertEqual(expected_output, output)
-        if 'exitcode' in test['test_types']:
-            expected_returncode = test.get('exitcode', 0)
-            (result, msg) = self.assertEqual(expected_returncode, proc.returncode, fmt="Expected exit code of {}, got {}.")
+            if 'output' in test['test_types']:
+                expected_output = str.encode(test.get('stdout', ""))
+                (result, msg) = self.assertEqual(expected_output, output)
+            if 'exitcode' in test['test_types']:
+                expected_returncode = test.get('exitcode', 0)
+                (result, msg) = self.assertEqual(expected_returncode, proc.returncode, fmt="Expected exit code of {}, got {}.")
+        else:
+            # code didn't compile correctly, skip test and give 0 points
+            (result, msg) = (False, "Skipped test due to non-compiling code")
 
         if result:
             score = max_score

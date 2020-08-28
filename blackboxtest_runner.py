@@ -22,7 +22,7 @@ class BlackBoxTestRunner(TestRunner):
         visibility = test.get('visibility', 'visible')
 
         filepath = os.path.join(self.build_dir, test['obj'])
-        if os.exists(filepath): 
+        if os.path.exists(filepath): 
             proc = subprocess.Popen(filepath, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.build_dir)
             stdin = str.encode(test.get('stdin', ""))
 

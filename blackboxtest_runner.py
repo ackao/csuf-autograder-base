@@ -1,5 +1,5 @@
 from test_runner import TestRunner
-from util import make_test_output
+from util import make_test_output, encode_as_bytes
 import os
 import subprocess
 import unittest
@@ -24,7 +24,7 @@ class BlackBoxTestRunner(TestRunner):
         filepath = os.path.join(self.build_dir, test['obj'])
         if os.path.exists(filepath):
             proc = subprocess.Popen(filepath, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.build_dir)
-            stdin = str.encode(test.get('stdin', ""))
+            stdin = encode_as_bytes(test.get('stdin', ""))
 
             output, err = proc.communicate(stdin, test.get('timeout', 1))
 

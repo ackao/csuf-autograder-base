@@ -19,3 +19,14 @@ def get_executable_name(filepath, build_dir=None):
     if build_dir:
         return os.path.join(build_dir, name)
     return name
+
+def format_to_string(b):
+    if type(b) is bytes:
+        return repr(b.decode()).strip('"\'')
+    if type(b) is str:
+        return repr(b).strip('"\'')
+    else:
+        return b
+
+def encode_as_bytes(x):
+    return str.encode(str(x))

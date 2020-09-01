@@ -1,9 +1,7 @@
 from autograder import Autograder
-import json, os, shutil
+import getopt, json, os, shutil, sys
 
-DEBUG = False
-
-def main():
+def main(DEBUG=False, TEST_ENV=False):
     CWD = os.getcwd()
     TMP_FOLDER = os.path.join(CWD, 'tmp')
     STUDENT_SRC_FOLDER = os.path.join(TMP_FOLDER, 'src')
@@ -12,7 +10,10 @@ def main():
     # copy student code from /autograder/submission to a temp folder
     if os.path.exists(TMP_FOLDER):
         shutil.rmtree(TMP_FOLDER)
-    shutil.copytree('/autograder/submission/', STUDENT_SRC_FOLDER)
+    if TEST_ENV:
+        shutil.copytree('/home/ubuntu/autograder/submission/', STUDENT_SRC_FOLDER)
+    else:
+        shutil.copytree('/autograder/submission/', STUDENT_SRC_FOLDER)
     os.mkdir(BUILD_FOLDER)
 
     # create new autograder object from config
@@ -38,10 +39,27 @@ def main():
     if DEBUG:
         print(autograder.tester.results)
 
+    if TEST_ENV:
+        outfile_path = '/home/ubuntu/autograder/results/results.json'
+    else:
+        outfile_path = '/autograder/results/results.json'
+
     # create json object with overall results and write to results directory
-    with open('/autograder/results/results.json', 'w+') as outfile:
+    with open(outfile_path, 'w+') as outfile:
         outfile.write(autograder.make_json())
 
 
 if __name__ == '__main__':
-    main()
+    debug = False
+    test_env = False
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"dt")
+    except getopt.GetoptError:
+        print('grade.py -d <debug flag> -t <test env flag>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-d':
+            debug = True
+        if opt == '-t':
+            test_env = True
+    main(DEBUG=debug, TEST_ENV=test_env)

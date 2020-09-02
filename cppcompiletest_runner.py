@@ -38,7 +38,11 @@ class CppCompileTestRunner(TestRunner):
             else: # Compile
                 cmd = ["g++", "-o", get_executable_name(obj['main'], build_dir=self.build_dir)] + srcs
                 self.add_compile_command_json(file=obj['main'], command=" ".join(cmd))
-                process = subprocess.run(cmd, cwd=self.code_dir)
+                try:
+                    process = subprocess.run(cmd, cwd=self.code_dir, timeout=10)
+                except TimeoutExpired:
+                    msg = "Compilation failed (timeout): {}".format(" ".join(cmd))
+                    score = 0
 
                 if process.returncode != 0:
                     msg = "Compilation failed: {}".format(" ".join(cmd))

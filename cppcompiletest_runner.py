@@ -30,7 +30,7 @@ class CppCompileTestRunner(TestRunner):
             missing_srcs = []
             for src in srcs:
                 if not os.path.isfile(os.path.join(self.code_dir, src)):
-                    missing_srcs += src
+                    missing_srcs += [src]
 
             if missing_srcs != []:
                 msg = "Required file(s) are missing: {}".format(missing_srcs)

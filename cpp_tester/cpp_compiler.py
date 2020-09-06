@@ -7,7 +7,7 @@
 import os
 import subprocess
 
-from classes.compiler import Compiler
+from compiler import Compiler
 from util import make_test_output
 
 class CppCompiler(Compiler):

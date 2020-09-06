@@ -4,7 +4,7 @@
     Runs C++ unit tests using googletest
 """
 
-from classes.test_runner import TestRunner
+from test_runner import TestRunner
 
 class GoogleTestRunner(TestRunner):
     """

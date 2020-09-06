@@ -6,7 +6,7 @@
 
 import subprocess
 
-from classes.test_runner import TestRunner
+from test_runner import TestRunner
 from util import make_test_output
 
 class CppLinter(TestRunner):

@@ -6,7 +6,7 @@ import json
 import yaml
 
 from general_tester.blackboxtest_runner import BlackBoxTestRunner
-from cpp_tester.compiler import CppCompiler
+from cpp_tester.cpp_compiler import CppCompiler
 from cpp_tester.linter import CppLinter
 
 class Autograder():

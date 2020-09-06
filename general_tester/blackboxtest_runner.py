@@ -8,7 +8,7 @@ Runs the specified executable and compares results
 import os
 import subprocess
 
-from classes.test_runner import TestRunner
+from test_runner import TestRunner
 from util import make_test_output, encode_as_bytes
 
 class BlackBoxTestRunner(TestRunner):

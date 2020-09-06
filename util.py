@@ -14,12 +14,6 @@ def make_test_output(test_name=None, score=0, max_score=0, output="", visibility
 
     return o
 
-def get_executable_name(filepath, build_dir=None):
-    name = os.path.basename(os.path.splitext(filepath)[0])
-    if build_dir:
-        return os.path.join(build_dir, name)
-    return name
-
 def format_to_string(b):
     if type(b) is bytes:
         return repr(b.decode()).strip('"\'')

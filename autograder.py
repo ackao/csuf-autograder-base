@@ -2,7 +2,7 @@ import json
 import yaml
 import os, subprocess
 from general_tester.blackboxtest_runner import BlackBoxTestRunner
-from cpp_tester.compiler import CppCompileTestRunner
+from cpp_tester.compiler import CppCompiler
 from cpp_tester.linter import CppLinter
 
 class Autograder():
@@ -48,7 +48,7 @@ class Autograder():
             self.tester = None
 
             if self.language == 'c++':
-                self.compiler =  CppCompileTestRunner(self.code, self.code_dir, self.build_dir)
+                self.compiler =  CppCompiler(self.code, self.code_dir, self.build_dir)
                 if 'linter' in cfg and cfg['linter']:
                     self.linter = CppLinter(self.code, self.code_dir)
                 if 'formatter' in cfg and cfg['formatter']:

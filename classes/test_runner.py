@@ -1,10 +1,12 @@
 from util import format_to_string
 
 class TestRunner():
+    results = None
     """
     Parent class for running any kind of unit testing
     """
     def __init__(self):
+        self.results = []
         return
 
     """

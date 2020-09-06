@@ -1,8 +1,12 @@
+"""
+    Defines an autograder object based on a YAML config file.
+"""
+
 import json
 import yaml
-import os, subprocess
+
 from general_tester.blackboxtest_runner import BlackBoxTestRunner
-from cpp_tester.compiler import CppCompileTestRunner
+from cpp_tester.cpp_compiler import CppCompiler
 from cpp_tester.linter import CppLinter
 
 class Autograder():
@@ -33,40 +37,36 @@ class Autograder():
         # Init by parsing YAML config
         with open(config, 'r') as file:
             cfg = yaml.safe_load(file)
-            self.DEBUG = debug
-            if self.DEBUG:
+            if debug:
                 print(cfg)
 
-            self.language = cfg['language']
-            self.test_framework = cfg['test_framework']
             self.code_dir = code_dir
             self.build_dir = build_dir
 
             self.linter = None
             self.formatter = None
-            self.code = cfg['code']
             self.tester = None
 
-            if self.language == 'c++':
-                self.compiler =  CppCompileTestRunner(self.code, self.code_dir, self.build_dir)
+            if cfg['language'] == 'c++':
+                self.compiler = CppCompiler(cfg['code'], self.code_dir, self.build_dir)
                 if 'linter' in cfg and cfg['linter']:
-                    self.linter = CppLinter(self.code, self.code_dir)
+                    self.linter = CppLinter(cfg['code'], self.code_dir)
                 if 'formatter' in cfg and cfg['formatter']:
-                    # TODO: fix
-                    self.formatter = None
+                    raise NotImplementedError
 
-            if self.test_framework == 'blackbox':
+            if cfg['test_framework'] == 'blackbox':
                 self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)
 
     def __str__(self):
-        return "Autograder object(language={}, test_framework={}, linter={}, formatter={}, code_dir={}".format(
-            self.language,
-            self.test_framework,
+        return "Autograder(linter={}, formatter={}, code_dir={}".format(
             self.linter,
             self.formatter,
             self.code_dir)
 
     def make_json(self):
+        """
+        Return Gradescope-formatted JSON with all results
+        """
         tests = self.compiler.results
         if self.linter:
             tests += self.linter.results
@@ -74,9 +74,9 @@ class Autograder():
             tests += self.formatter.results
         tests += self.tester.results
 
-        o = {
+        output = {
             "visibility" : "visible",
             "stdout_visibility": "visible",
             "tests": tests
         }
-        return json.dumps(o)
+        return json.dumps(output)

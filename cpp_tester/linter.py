@@ -3,7 +3,7 @@ import os
 import subprocess
 
 from classes.test_runner import TestRunner
-from util import make_test_output, get_executable_name
+from util import make_test_output
 
 class CppLinter(TestRunner):
     results = []

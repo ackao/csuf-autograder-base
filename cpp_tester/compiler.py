@@ -3,56 +3,54 @@ import yaml
 import os
 import subprocess
 
-from classes.test_runner import TestRunner
-from util import make_test_output, get_executable_name
+from classes.compiler import Compiler
+from util import make_test_output
 
-class CppCompileTestRunner(TestRunner):
-    results = []
-    compile_commands = []
+class CppCompiler(Compiler):
+    compile_commands = None
 
     def __init__(self, code, code_dir, build_dir):
-        self.code = code
-        self.code_dir = code_dir
-        self.build_dir = build_dir
-        super().__init__()
+        self.compile_commands = []
+        super().__init__(code, code_dir, build_dir)
 
-    def run_test(self):
+    def compile(self):
         for obj in self.code:
-            srcs = [obj['main']]
-            if 'implems' in obj:
-                srcs += obj['implems']
+            srcs = [obj['main']] + obj.get('implems', [])
+            max_score = obj.get('compile_points', 0)
+            ok = False
 
-            max_score = 0
-            if 'compile_points' in obj:
-                max_score = obj['compile_points']
+            exec_name = self.get_executable_name(obj['main'], build_dir=self.build_dir)
 
             # Check that all files are present
             missing_srcs = []
             for src in srcs:
                 if not os.path.isfile(os.path.join(self.code_dir, src)):
-                    missing_srcs += [src]
+                    missing_srcs.append(src)
 
-            if missing_srcs != []:
+            if missing_srcs:
                 msg = "Required file(s) are missing: {}".format(missing_srcs)
-                score = 0
             else: # Compile
-                cmd = ["g++", "-o", get_executable_name(obj['main'], build_dir=self.build_dir)] + srcs
+                cmd = ["g++", "-o", exec_name] + srcs
                 self.add_compile_command_json(file=obj['main'], command=" ".join(cmd))
                 try:
                     process = subprocess.run(cmd, cwd=self.code_dir, timeout=10)
-                except TimeoutExpired:
-                    msg = "Compilation failed (timeout): {}".format(" ".join(cmd))
-                    score = 0
-
-                if process.returncode != 0:
-                    msg = "Compilation failed: {}".format(" ".join(cmd))
-                    score = 0
+                except subprocess.TimeoutExpired:
+                    msg = "Compilation failed (timeout)"
                 else:
-                    msg = "Compilation succeeded: {}".format(obj['main'])
-                    score = max_score
+                    if process.returncode != 0:
+                        msg = "Compilation failed"
+                    else:
+                        msg = "Compilation succeeded"
+                        ok = True
+
+            if ok:
+                score = max_score
+            else:
+                score = 0
+                self.failures.append(self.get_executable_name(obj['main']))
 
             if max_score > 0:
-                self.results.append(make_test_output(test_name="Compilation Test",
+                self.results.append(make_test_output(test_name="Compilation Test: {}".format(obj['main']),
                                     score=score,
                                     max_score=max_score,
                                     output=msg,

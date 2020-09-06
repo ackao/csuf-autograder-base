@@ -21,8 +21,9 @@ def main(DEBUG=False, TEST_ENV=False):
     autograder = Autograder("../autograder_config.yml", STUDENT_SRC_FOLDER, BUILD_FOLDER)
 
     # try to compile student code -- results are in autograder.compiler.results
-    autograder.compiler.run_test()
+    autograder.compiler.compile()
     if DEBUG:
+        print("Failed to compile: {}".format(autograder.compiler.get_failures()))
         print(autograder.compiler.results)
     with open(os.path.join(TMP_FOLDER, 'compile_commands.json'), 'w+') as outfile:
         json.dump(autograder.compiler.compile_commands, outfile)
@@ -36,7 +37,7 @@ def main(DEBUG=False, TEST_ENV=False):
     # run formatter
 
     # run test cases (get json output from googletest)
-    autograder.tester.run_test()
+    autograder.tester.run_test(failed=autograder.compiler.get_failures())
     if DEBUG:
         print(autograder.tester.results)
 

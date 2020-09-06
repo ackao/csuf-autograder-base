@@ -1,31 +1,43 @@
-from autograder import Autograder
-import getopt, json, os, shutil, sys
+"""
+Main entrypoint for autograder
+"""
+import getopt
+import json
+import os
+import shutil
+import sys
 
-def main(DEBUG=False, TEST_ENV=False):
-    CWD = os.getcwd()
-    sys.path.append(CWD)
-    TMP_FOLDER = os.path.join(CWD, 'tmp')
-    STUDENT_SRC_FOLDER = os.path.join(TMP_FOLDER, 'src')
-    BUILD_FOLDER = os.path.join(TMP_FOLDER, 'build')
+from autograder import Autograder
+
+def main():
+    """
+    Main entrypoint for autograder
+    """
+
+    cwd = os.getcwd()
+    sys.path.append(cwd)
+    tmp_folder = os.path.join(cwd, 'tmp')
+    student_src_folder = os.path.join(tmp_folder, 'src')
+    build_folder = os.path.join(tmp_folder, 'build')
 
     # copy student code from /autograder/submission to a temp folder
-    if os.path.exists(TMP_FOLDER):
-        shutil.rmtree(TMP_FOLDER)
+    if os.path.exists(tmp_folder):
+        shutil.rmtree(tmp_folder)
     if TEST_ENV:
-        shutil.copytree('/home/ubuntu/autograder/submission/', STUDENT_SRC_FOLDER)
+        shutil.copytree('/home/ubuntu/autograder/submission/', student_src_folder)
     else:
-        shutil.copytree('/autograder/submission/', STUDENT_SRC_FOLDER)
-    os.mkdir(BUILD_FOLDER)
+        shutil.copytree('/autograder/submission/', student_src_folder)
+    os.mkdir(build_folder)
 
     # create new autograder object from config
-    autograder = Autograder("../autograder_config.yml", STUDENT_SRC_FOLDER, BUILD_FOLDER)
+    autograder = Autograder("../autograder_config.yml", student_src_folder, build_folder)
 
     # try to compile student code -- results are in autograder.compiler.results
     autograder.compiler.compile()
     if DEBUG:
         print("Failed to compile: {}".format(autograder.compiler.get_failures()))
         print(autograder.compiler.results)
-    with open(os.path.join(TMP_FOLDER, 'compile_commands.json'), 'w+') as outfile:
+    with open(os.path.join(tmp_folder, 'compile_commands.json'), 'w+') as outfile:
         json.dump(autograder.compiler.compile_commands, outfile)
 
     # run linter
@@ -37,7 +49,8 @@ def main(DEBUG=False, TEST_ENV=False):
     # run formatter
 
     # run test cases (get json output from googletest)
-    autograder.tester.run_test(failed=autograder.compiler.get_failures())
+    autograder.tester.set_skip(autograder.compiler.get_failures())
+    autograder.tester.run_test()
     if DEBUG:
         print(autograder.tester.results)
 
@@ -52,16 +65,15 @@ def main(DEBUG=False, TEST_ENV=False):
 
 
 if __name__ == '__main__':
-    debug = False
-    test_env = False
+    DEBUG = False
+    TEST_ENV = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"dt")
+        for opt, _ in getopt.getopt(sys.argv[1:], "dt")[0]:
+            if opt == '-d':
+                DEBUG = True
+            if opt == '-t':
+                TEST_ENV = True
     except getopt.GetoptError:
-        print('grade.py -d <debug flag> -t <test env flag>')
+        print('grade.py -d <DEBUG flag> -t <test env flag>')
         sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-d':
-            debug = True
-        if opt == '-t':
-            test_env = True
-    main(DEBUG=debug, TEST_ENV=test_env)
+    main()

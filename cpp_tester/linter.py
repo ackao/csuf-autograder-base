@@ -1,11 +1,19 @@
-import json
-import os
+"""
+    CppLinter class
+
+    Uses clang-tidy to lint student submissions
+"""
+
 import subprocess
 
 from classes.test_runner import TestRunner
 from util import make_test_output
 
 class CppLinter(TestRunner):
+    """
+    Uses clang-tidy to lint student submissions
+    """
+
     results = []
     CLANGTDY_CHKS = "*,-google-build-using-namespace,-fuchsia-default-arguments,-llvm-header-guard"
 
@@ -18,8 +26,9 @@ class CppLinter(TestRunner):
         for obj in self.code:
             main = obj['main']
 
-            cmd = ["clang-tidy", "-checks={}".format(self.CLANGTDY_CHKS), "--warnings-as-errors=*", "-header-filter=.*", main]
-            process = subprocess.run(cmd, cwd=self.code_dir)
+            cmd = ["clang-tidy", "-checks={}".format(self.CLANGTDY_CHKS), "--warnings-as-errors=*",
+                   "-header-filter=.*", main]
+            process = subprocess.run(cmd, cwd=self.code_dir, timeout=30, check=False)
 
             if process.returncode != 0:
                 msg = "Linter returned errors: {}".format(" ".join(cmd))
@@ -28,9 +37,9 @@ class CppLinter(TestRunner):
                 msg = "No linter errors for file: {}".format(main)
                 score = obj['linter_points']
 
-            self.results.append(make_test_output(test_name="Linter Test",
-                                score=score,
-                                max_score=obj['linter_points'],
-                                output=msg,
-                                visibility="visible"))
-
+            self.results.append(make_test_output(
+                test_name="Linter Test",
+                score=score,
+                max_score=obj['linter_points'],
+                output=msg,
+                visibility="visible"))

@@ -1,9 +1,9 @@
 import json
 import yaml
 import os, subprocess
-from blackboxtest_runner import BlackBoxTestRunner
-from cppcompiletest_runner import CppCompileTestRunner
-from linter import CppLinter
+from general_tester.blackboxtest_runner import BlackBoxTestRunner
+from cpp_tester.compiler import CppCompileTestRunner
+from cpp_tester.linter import CppLinter
 
 class Autograder():
     """

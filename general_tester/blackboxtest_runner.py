@@ -1,4 +1,4 @@
-from test_runner import TestRunner
+from classes.test_runner import TestRunner
 from util import make_test_output, encode_as_bytes
 import os
 import subprocess

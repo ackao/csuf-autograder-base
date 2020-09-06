@@ -3,6 +3,7 @@ import getopt, json, os, shutil, sys
 
 def main(DEBUG=False, TEST_ENV=False):
     CWD = os.getcwd()
+    sys.path.append(CWD)
     TMP_FOLDER = os.path.join(CWD, 'tmp')
     STUDENT_SRC_FOLDER = os.path.join(TMP_FOLDER, 'src')
     BUILD_FOLDER = os.path.join(TMP_FOLDER, 'build')

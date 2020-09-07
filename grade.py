@@ -42,7 +42,7 @@ def main():
 
     # run linter
     if autograder.linter:
-        autograder.linter.run_test()
+        autograder.linter.run_linter()
         if DEBUG:
             print(autograder.linter.results)
 

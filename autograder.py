@@ -7,7 +7,7 @@ import yaml
 
 from general_tester.blackboxtest_runner import BlackBoxTestRunner
 from cpp_tester.cpp_compiler import CppCompiler
-from cpp_tester.linter import CppLinter
+from cpp_tester.cpp_linter import CppLinter
 
 class Autograder():
     """
@@ -47,11 +47,13 @@ class Autograder():
             self.formatter = None
             self.tester = None
 
+            linter_cfg = cfg.get('linter', None)
+
             if cfg['language'] == 'c++':
                 self.compiler = CppCompiler(cfg['code'], self.code_dir, self.build_dir)
-                if 'linter' in cfg and cfg['linter']:
-                    self.linter = CppLinter(cfg['code'], self.code_dir)
-                if 'formatter' in cfg and cfg['formatter']:
+                if linter_cfg and linter_cfg.get('enable', True):
+                    self.linter = CppLinter(cfg['code'], self.code_dir, linter_cfg)
+                if cfg.get('formatter', False):
                     raise NotImplementedError
 
             if cfg['test_framework'] == 'blackbox':

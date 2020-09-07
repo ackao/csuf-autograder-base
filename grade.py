@@ -42,11 +42,15 @@ def main():
 
     # run linter
     if autograder.linter:
-        autograder.linter.run_linter()
+        autograder.linter.run()
         if DEBUG:
             print(autograder.linter.results)
 
-    # run formatter
+    # run style check
+    if autograder.stylecheck:
+        autograder.stylecheck.run()
+        if DEBUG:
+            print(autograder.stylecheck.results)
 
     # run test cases (get json output from googletest)
     autograder.tester.set_skip(autograder.compiler.get_failures())

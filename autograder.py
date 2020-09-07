@@ -7,6 +7,7 @@ import yaml
 
 from general_tester.blackboxtest_runner import BlackBoxTestRunner
 from cpp_tester.cpp_compiler import CppCompiler
+from cpp_tester.cpp_format import CppFormatter
 from cpp_tester.cpp_linter import CppLinter
 
 class Autograder():
@@ -44,7 +45,7 @@ class Autograder():
             self.build_dir = build_dir
 
             self.linter = None
-            self.formatter = None
+            self.stylecheck = None
             self.tester = None
 
             linter_cfg = cfg.get('linter', None)
@@ -53,16 +54,16 @@ class Autograder():
                 self.compiler = CppCompiler(cfg['code'], self.code_dir, self.build_dir)
                 if linter_cfg and linter_cfg.get('enable', True):
                     self.linter = CppLinter(cfg['code'], self.code_dir, linter_cfg)
-                if cfg.get('formatter', False):
-                    raise NotImplementedError
+                if cfg.get('style_check', False):
+                    self.stylecheck = CppFormatter(cfg['code'], self.code_dir, self.build_dir)
 
             if cfg['test_framework'] == 'blackbox':
                 self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)
 
     def __str__(self):
-        return "Autograder(linter={}, formatter={}, code_dir={}".format(
+        return "Autograder(linter={}, stylecheck={}, code_dir={}".format(
             self.linter,
-            self.formatter,
+            self.stylecheck,
             self.code_dir)
 
     def make_json(self):
@@ -72,8 +73,8 @@ class Autograder():
         tests = self.compiler.results
         if self.linter:
             tests += self.linter.results
-        if self.formatter:
-            tests += self.formatter.results
+        if self.stylecheck:
+            tests += self.stylecheck.results
         tests += self.tester.results
 
         output = {

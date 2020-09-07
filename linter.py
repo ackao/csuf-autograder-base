@@ -14,7 +14,7 @@ class Linter():
     results = None
     test_name_fmt = "Linter Test: {}"
 
-    def __init__(self, code, code_dir, linter_cfg):
+    def __init__(self, code, code_dir, linter_cfg=None):
         self.cfg = linter_cfg
         self.code = code
         self.code_dir = code_dir
@@ -23,7 +23,7 @@ class Linter():
         if self.cfg:
             self.test_name_fmt = self.cfg.get('test_name', self.test_name_fmt)
 
-    def run_linter(self):
+    def run(self):
         """
         Runs linter and returns Gradescope-readable JSON output
         """

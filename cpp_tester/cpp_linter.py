@@ -20,14 +20,18 @@ class CppLinter(Linter):
     failure_msg = "Linter returned errors"
 
     def __init__(self, code, code_dir, cfg):
-        super().__init__(code, code_dir, cfg)
+        super().__init__(code, code_dir, linter_cfg=cfg)
         if self.cfg:
             self.custom_checks = self.cfg.get('checks', None)
             self.success_msg = self.cfg.get('success_message', self.success_msg)
             self.failure_msg = self.cfg.get('failure_message', self.failure_msg)
 
-    def run_linter(self):
+    def run(self):
         for obj in self.code:
+            max_score = obj.get('linter_points', 0)
+            if max_score == 0:
+                continue
+
             main = obj['main']
 
             if self.custom_checks:
@@ -53,11 +57,11 @@ class CppLinter(Linter):
                     score = 0
                 else:
                     msg = self.success_msg
-                    score = obj['linter_points']
+                    score = max_score
 
             self.results.append(make_test_output(
                 test_name=self.format_name(main),
                 score=score,
-                max_score=obj['linter_points'],
+                max_score=max_score,
                 output=msg,
                 visibility="visible"))

@@ -33,9 +33,12 @@ class TestRunner():
         exp_msg = "Expected {}".format(desc)
         got_msg = "Your Program's {}".format(desc)
 
+        value = decode_to_string(value)
+        expected = decode_to_string(expected)
+
         if expected != value:
-            value = decode_to_string(value).splitlines(keepends=True)
-            expected = decode_to_string(expected).splitlines(keepends=True)
+            value = value.splitlines(keepends=True)
+            expected = expected.splitlines(keepends=True)
             diff = difflib.context_diff(expected, value, fromfile=exp_msg, tofile=got_msg, n=100)
             result = "Input: {}\n".format(format_to_string(stdin)) + "".join(list(diff))
             return (False, result)

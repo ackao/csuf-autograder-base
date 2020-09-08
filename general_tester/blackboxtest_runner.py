@@ -37,9 +37,12 @@ class BlackBoxTestRunner(TestRunner):
         max_score = test.get('points', 1)
         visibility = test.get('visibility', 'visible')
 
+        all_success = True
+        msgs = ""
+
         if test['obj'] in self.get_skip():
             # code didn't compile correctly, skip test and give 0 points
-            (result, msg) = (False, "Skipped test due to non-compiling code")
+            (all_success, msgs) = (False, "Skipped test due to non-compiling code")
         else:
             filepath = os.path.join(self.build_dir, test['obj'])
             proc = subprocess.Popen(
@@ -53,13 +56,17 @@ class BlackBoxTestRunner(TestRunner):
             output, _ = proc.communicate(stdin, test.get('timeout', 10))
 
             if 'output' in test['test_types']:
-                expected_output = str.encode(test.get('stdout', ""))
-                (result, msg) = self.assert_equal(stdin, expected_output, output)
+                (result, msg) = self.assert_equal(stdin, test.get('stdout', ""), output)
+                all_success = all_success and result
+                if msg:
+                    msgs = "\n".join([msgs, msg])
             if 'exitcode' in test['test_types']:
-                expected_returncode = test.get('exitcode', 0)
-                (result, msg) = self.check_exitcode(stdin, expected_returncode, proc.returncode)
+                (result, msg) = self.check_exitcode(stdin, test.get('exitcode', 0), proc.returncode)
+                all_success = all_success and result
+                if msg:
+                    msgs = "\n".join([msgs, msg])
 
-        if result:
+        if all_success:
             score = max_score
         else:
             score = 0
@@ -68,5 +75,5 @@ class BlackBoxTestRunner(TestRunner):
             test_name=test_name,
             score=score,
             max_score=max_score,
-            output=msg,
+            output=msgs.strip(),
             visibility=visibility))

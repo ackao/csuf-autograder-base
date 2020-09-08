@@ -34,3 +34,11 @@ def encode_as_bytes(obj):
     Convert any type to bytes
     """
     return str.encode(str(obj))
+
+def decode_to_string(obj):
+    """
+    Convert any type to string
+    """
+    if isinstance(obj, bytes):
+        return obj.decode()
+    return str(obj)

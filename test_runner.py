@@ -3,7 +3,9 @@ TestRunner class
 
 Abstract class for running any kind of unit testing
 """
-from util import format_to_string
+import difflib
+
+from util import format_to_string, decode_to_string
 
 class TestRunner():
     """
@@ -23,25 +25,34 @@ class TestRunner():
         raise NotImplementedError
 
     @staticmethod
-    def assert_equal(stdin, expected, value, msg=None, fmt=None):
+    def assert_equal(stdin, expected, value, desc="Output"):
         """
         Returns whether value and expected are equal.
         If not, returns a string containing a message or a formatted string
         """
+        exp_msg = "Expected {}".format(desc)
+        got_msg = "Your Program's {}".format(desc)
+
         if expected != value:
-            if msg:
-                return (False, msg)
-            if fmt:
-                return (False, fmt.format(
-                    format_to_string(stdin),
-                    format_to_string(expected),
-                    format_to_string(value)))
-            return (False,
-                    "Input:\n{}\nExpected output:\n{}\nYour program's output:\n{}".format(
-                        format_to_string(stdin),
-                        format_to_string(expected),
-                        format_to_string(value)))
+            value = decode_to_string(value).splitlines(keepends=True)
+            expected = decode_to_string(expected).splitlines(keepends=True)
+            diff = difflib.context_diff(expected, value, fromfile=exp_msg, tofile=got_msg, n=100)
+            result = "Input: {}\n".format(format_to_string(stdin)) + "".join(list(diff))
+            return (False, result)
         return (True, None)
+
+    @staticmethod
+    def check_exitcode(stdin, expected, got, fmt=None):
+        """
+        Returns whether got == expected
+        Formats an appropriate message for gradescope to print
+        """
+        if expected == got:
+            return (True, None)
+        msg = "Input: {}\nExpected Exit Code: {}\nYour Program's Exit Code: {}"
+        if fmt:
+            msg = fmt
+        return (False, msg.format(format_to_string(stdin), expected, got))
 
     def set_skip(self, skip):
         """

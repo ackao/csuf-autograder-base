@@ -26,7 +26,7 @@ class CppCompiler(Compiler):
         """
         for obj in self.code:
             srcs = [obj['main']] + obj.get('implems', [])
-            max_score = obj.get('compile_points', 0)
+            max_score = obj.get('compile_points', None)
             success = False
 
             exec_name = self.get_executable_name(obj['main'], build_dir=self.build_dir)
@@ -52,13 +52,14 @@ class CppCompiler(Compiler):
                     msg = "Compilation succeeded"
                     success = True
 
-            if success:
-                score = max_score
-            else:
-                score = 0
+            if not success:
                 self.failures.append(self.get_executable_name(obj['main']))
 
-            if max_score > 0:
+            if max_score is not None:
+                if success:
+                    score = max_score
+                else:
+                    score = 0
                 self.results.append(make_test_output(
                     test_name="Compilation Test: {}".format(obj['main']),
                     score=score,

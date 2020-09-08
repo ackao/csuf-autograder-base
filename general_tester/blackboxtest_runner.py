@@ -57,11 +57,7 @@ class BlackBoxTestRunner(TestRunner):
                 (result, msg) = self.assert_equal(stdin, expected_output, output)
             if 'exitcode' in test['test_types']:
                 expected_returncode = test.get('exitcode', 0)
-                (result, msg) = self.assert_equal(
-                    stdin,
-                    expected_returncode,
-                    proc.returncode,
-                    fmt="Input:\n{}\nExpected exit code:\n{}\nYour program's exit code:\n{}")
+                (result, msg) = self.check_exitcode(stdin, expected_returncode, proc.returncode)
 
         if result:
             score = max_score

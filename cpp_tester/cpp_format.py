@@ -64,10 +64,10 @@ class CppFormatter(Linter):
                     student_code = open(os.path.join(self.code_dir, student_file), "r").readlines()
                     formatted_code = open(tmpfile, "r").readlines()
                     diff = difflib.context_diff(
-                        student_code,
                         formatted_code,
-                        fromfile="Your code: {}".format(student_file),
-                        tofile="Correctly formatted code")
+                        student_code,
+                        fromfile="Correctly formatted code",
+                        tofile="Your code: {}".format(student_file))
                     msg = "".join(list(diff))
 
             self.results.append(make_test_output(

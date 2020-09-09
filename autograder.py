@@ -49,13 +49,18 @@ class Autograder():
             self.tester = None
 
             linter_cfg = cfg.get('linter', None)
+            style_cfg = cfg.get('style_check', None)
 
             if cfg['language'] == 'c++':
                 self.compiler = CppCompiler(cfg['code'], self.code_dir, self.build_dir)
                 if linter_cfg and linter_cfg.get('enable', True):
                     self.linter = CppLinter(cfg['code'], self.code_dir, linter_cfg)
-                if cfg.get('style_check', False):
-                    self.stylecheck = CppFormatter(cfg['code'], self.code_dir, self.build_dir)
+                if style_cfg and style_cfg.get('enable', True):
+                    self.stylecheck = CppFormatter(
+                        cfg['code'],
+                        self.code_dir,
+                        self.build_dir,
+                        style_cfg.get('strip_ws', False))
 
             if cfg['test_framework'] == 'blackbox':
                 self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)

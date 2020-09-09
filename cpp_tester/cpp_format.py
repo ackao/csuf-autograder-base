@@ -22,9 +22,11 @@ class CppFormatter(Linter):
     custom_clangfmt_path = "../.clang-format"
     success_msg = "No style errors found"
     tmp_dir = None
+    strip_ws = False
 
-    def __init__(self, code, code_dir, tmp_dir=tmp_dir):
+    def __init__(self, code, code_dir, tmp_dir=tmp_dir, strip_ws=False):
         self.tmp_dir = tmp_dir
+        self.strip_ws = strip_ws
         super().__init__(code, code_dir)
         self.test_name_fmt = "Style check: {}"
         if os.path.exists(self.custom_clangfmt_path):
@@ -41,6 +43,12 @@ class CppFormatter(Linter):
                 continue
 
             student_file = obj['main']
+            if self.strip_ws:
+                with open(os.path.join(self.code_dir, student_file), "r") as file:
+                    student_code = [line.rstrip() + '\n' for line in file.readlines()]
+                with open(os.path.join(self.code_dir, student_file), "w") as file:
+                    file.writelines(student_code)
+
             cmd = ["clang-format", "-style=file", student_file]
 
             try:

@@ -47,6 +47,7 @@ class Autograder():
             self.linter = None
             self.stylecheck = None
             self.tester = None
+            self.score_override = cfg.get('score_override', None)
 
             linter_cfg = cfg.get('linter', None)
             style_cfg = cfg.get('style_check', None)
@@ -87,4 +88,8 @@ class Autograder():
             "stdout_visibility": "visible",
             "tests": tests
         }
+
+        if self.score_override is not None:
+            output["score"] = self.score_override
+
         return json.dumps(output)

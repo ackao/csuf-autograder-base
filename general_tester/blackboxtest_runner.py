@@ -9,7 +9,7 @@ import os
 import subprocess
 
 from test_runner import TestRunner
-from util import make_test_output, encode_as_bytes, format_to_string
+from util import make_test_output, encode_as_bytes
 
 class BlackBoxTestRunner(TestRunner):
     """
@@ -62,7 +62,8 @@ class BlackBoxTestRunner(TestRunner):
                     if msg:
                         msgs = "\n".join([msgs, msg])
                 if 'exitcode' in test['test_types']:
-                    (result, msg) = self.check_exitcode(stdin, test.get('exitcode', 0), proc.returncode)
+                    exitcode = test.get('exitcode', 0)
+                    (result, msg) = self.check_exitcode(stdin, exitcode, proc.returncode)
                     all_success = all_success and result
                     if msg:
                         msgs = "\n".join([msgs, msg])

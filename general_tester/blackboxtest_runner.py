@@ -9,7 +9,7 @@ import os
 import subprocess
 
 from test_runner import TestRunner
-from util import make_test_output, encode_as_bytes
+from util import make_test_output, encode_as_bytes, format_to_string
 
 class BlackBoxTestRunner(TestRunner):
     """
@@ -45,26 +45,30 @@ class BlackBoxTestRunner(TestRunner):
             (all_success, msgs) = (False, "Skipped test due to non-compiling code")
         else:
             filepath = os.path.join(self.build_dir, test['obj'])
-            proc = subprocess.Popen(
-                filepath,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=self.build_dir)
-            stdin = encode_as_bytes(test.get('stdin', ""))
+            try:
+                proc = subprocess.Popen(
+                    filepath,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    cwd=self.build_dir)
+                stdin = encode_as_bytes(test.get('stdin', ""))
 
-            output, _ = proc.communicate(stdin, test.get('timeout', 10))
+                output, _ = proc.communicate(stdin, test.get('timeout', 10))
 
-            if 'output' in test['test_types']:
-                (result, msg) = self.assert_equal(stdin, test.get('stdout', ""), output)
-                all_success = all_success and result
-                if msg:
-                    msgs = "\n".join([msgs, msg])
-            if 'exitcode' in test['test_types']:
-                (result, msg) = self.check_exitcode(stdin, test.get('exitcode', 0), proc.returncode)
-                all_success = all_success and result
-                if msg:
-                    msgs = "\n".join([msgs, msg])
+                if 'output' in test['test_types']:
+                    (result, msg) = self.assert_equal(stdin, test.get('stdout', ""), output)
+                    all_success = all_success and result
+                    if msg:
+                        msgs = "\n".join([msgs, msg])
+                if 'exitcode' in test['test_types']:
+                    (result, msg) = self.check_exitcode(stdin, test.get('exitcode', 0), proc.returncode)
+                    all_success = all_success and result
+                    if msg:
+                        msgs = "\n".join([msgs, msg])
+            except subprocess.TimeoutExpired:
+                all_success = False
+                msgs = "Test failed (timeout)\nInput: {}".format(test.get('stdin', ""))
 
         if all_success:
             score = max_score

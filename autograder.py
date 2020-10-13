@@ -9,6 +9,7 @@ from general_tester.blackboxtest_runner import BlackBoxTestRunner
 from cpp_tester.cpp_compiler import CppCompiler
 from cpp_tester.cpp_format import CppFormatter
 from cpp_tester.cpp_linter import CppLinter
+from cpp_tester.googletest_runner import GoogleTestRunner
 
 class Autograder():
     """
@@ -34,7 +35,7 @@ class Autograder():
 
     """
 
-    def __init__(self, config, code_dir, build_dir, debug=False):
+    def __init__(self, config, code_dir, build_dir, test_dir, debug=False):
         # Init by parsing YAML config
         with open(config, 'r') as file:
             cfg = yaml.safe_load(file)
@@ -65,6 +66,8 @@ class Autograder():
 
             if cfg['test_framework'] == 'blackbox':
                 self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)
+            elif cfg['test_framework'] == 'googletest':
+                self.tester = GoogleTestRunner(cfg['code'], test_dir)
 
     def __str__(self):
         return "Autograder(linter={}, stylecheck={}, code_dir={}".format(

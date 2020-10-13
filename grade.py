@@ -21,6 +21,7 @@ def main():
     student_src_folder = os.path.join(tmp_folder, 'src')
     build_folder = os.path.join(tmp_folder, 'build')
     replacements_dir = os.path.join(os.path.dirname(cwd), 'replacements')
+    test_folder = os.path.join(tmp_folder, 'test')
 
     # copy student code from /autograder/submission to a temp folder
     if os.path.exists(tmp_folder):
@@ -35,8 +36,12 @@ def main():
 
     os.mkdir(build_folder)
 
+    # copy googletest cases into tmp folder
+    if os.path.exists('../tests'):
+        shutil.copytree('../tests', test_folder)
+
     # create new autograder object from config
-    autograder = Autograder("../autograder_config.yml", student_src_folder, build_folder)
+    autograder = Autograder("../autograder_config.yml", student_src_folder, build_folder, test_folder)
 
     # try to compile student code -- results are in autograder.compiler.results
     autograder.compiler.compile()

@@ -2,6 +2,9 @@
 Miscellaneous utility functions for autograder
 """
 
+import os
+import shutil
+
 def make_test_output(test_name=None, score=0, max_score=0, output="", visibility=None):
     """
     Return a dictionary representing results of a test.
@@ -42,3 +45,18 @@ def decode_to_string(obj):
     if isinstance(obj, bytes):
         return obj.decode()
     return str(obj)
+
+def recursive_copy_with_overwrite(src, dst):
+    """
+    Copies contents of src directory to dst, overwriting existing files
+    """
+    for item in os.listdir(src):
+        path = os.path.join(src, item)
+        if os.path.isfile(path):
+            print("copying {}".format(path))
+            shutil.copy(path, dst)
+        elif os.path.isdir(path):
+            new_dst = os.path.join(dst, item)
+            if not os.path.exists(new_dst):
+                os.mkdir(new_dst)
+            recursive_copy_with_overwrite(path, new_dst)

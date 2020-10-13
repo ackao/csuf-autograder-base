@@ -8,6 +8,7 @@ import shutil
 import sys
 
 from autograder import Autograder
+from util import recursive_copy_with_overwrite
 
 def main():
     """
@@ -19,6 +20,7 @@ def main():
     tmp_folder = os.path.join(cwd, 'tmp')
     student_src_folder = os.path.join(tmp_folder, 'src')
     build_folder = os.path.join(tmp_folder, 'build')
+    replacements_dir = os.path.join(os.path.dirname(cwd), 'replacements')
 
     # copy student code from /autograder/submission to a temp folder
     if os.path.exists(tmp_folder):
@@ -27,6 +29,10 @@ def main():
         shutil.copytree('/home/ubuntu/autograder/submission/', student_src_folder)
     else:
         shutil.copytree('/autograder/submission/', student_src_folder)
+
+    if os.path.exists(replacements_dir):
+        recursive_copy_with_overwrite(replacements_dir, student_src_folder)
+
     os.mkdir(build_folder)
 
     # create new autograder object from config

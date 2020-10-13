@@ -35,12 +35,10 @@ class Autograder():
 
     """
 
-    def __init__(self, config, code_dir, build_dir, test_dir, debug=False):
+    def __init__(self, config, code_dir, build_dir, test_dir):
         # Init by parsing YAML config
         with open(config, 'r') as file:
             cfg = yaml.safe_load(file)
-            if debug:
-                print(cfg)
 
             self.code_dir = code_dir
             self.build_dir = build_dir
@@ -61,13 +59,13 @@ class Autograder():
                     self.stylecheck = CppFormatter(
                         cfg['code'],
                         self.code_dir,
-                        self.build_dir,
-                        style_cfg.get('strip_ws', False))
+                        style_cfg,
+                        self.build_dir)
 
             if cfg['test_framework'] == 'blackbox':
                 self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)
             elif cfg['test_framework'] == 'googletest':
-                self.tester = GoogleTestRunner(cfg['code'], test_dir)
+                self.tester = GoogleTestRunner(cfg['code'], test_dir, self.code_dir)
 
     def __str__(self):
         return "Autograder(linter={}, stylecheck={}, code_dir={}".format(

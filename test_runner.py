@@ -13,6 +13,7 @@ class TestRunner():
     """
     results = None
     skip = None
+    MAX_OUTPUT_LENGTH = 10000
 
     def __init__(self):
         self.results = []
@@ -24,8 +25,8 @@ class TestRunner():
         """
         raise NotImplementedError
 
-    @staticmethod
-    def assert_equal(stdin, expected, value, desc="Output"):
+    @classmethod
+    def assert_equal(cls, stdin, expected, value, desc="Output"):
         """
         Returns whether value and expected are equal.
         If not, returns a string containing a message or a formatted string
@@ -38,6 +39,9 @@ class TestRunner():
 
         if expected != value:
             value = value.splitlines(keepends=True)
+            if len(value) > cls.MAX_OUTPUT_LENGTH:
+                result = "Input: {}\nYour code produced too much output.\n".format(format_to_string(stdin))
+                return (False, result)
             expected = expected.splitlines(keepends=True)
             diff = difflib.context_diff(expected, value, fromfile=exp_msg, tofile=got_msg, n=100)
             result = "Input: {}\n".format(format_to_string(stdin)) + "".join(list(diff))

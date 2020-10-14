@@ -23,10 +23,13 @@ class CppFormatter(Linter):
     success_msg = "No style errors found"
     tmp_dir = None
     strip_ws = False
+    files = {}
 
-    def __init__(self, code, code_dir, tmp_dir=tmp_dir, strip_ws=False):
+    def __init__(self, code, code_dir, style_cfg, tmp_dir=tmp_dir):
         self.tmp_dir = tmp_dir
-        self.strip_ws = strip_ws
+        self.strip_ws = style_cfg.get('strip_ws', False)
+        for fmt in style_cfg.get('files', []):
+            self.files[fmt['file']] = fmt.get('points', 1)
         super().__init__(code, code_dir)
         self.test_name_fmt = "Style check: {}"
         if os.path.exists(self.custom_clangfmt_path):
@@ -37,12 +40,10 @@ class CppFormatter(Linter):
     def run(self):
         tmpfile = os.path.join(self.tmp_dir, "clang_format_tmp")
 
-        for obj in self.code:
-            max_score = obj.get('style_points', 0)
+        for (student_file, max_score) in self.files.items():
             if max_score == 0:
                 continue
 
-            student_file = obj['main']
             if self.strip_ws:
                 with open(os.path.join(self.code_dir, student_file), "r") as file:
                     student_code = [line.rstrip() + '\n' for line in file.readlines()]

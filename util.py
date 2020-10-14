@@ -53,10 +53,16 @@ def recursive_copy_with_overwrite(src, dst):
     for item in os.listdir(src):
         path = os.path.join(src, item)
         if os.path.isfile(path):
-            print("copying {}".format(path))
             shutil.copy(path, dst)
         elif os.path.isdir(path):
             new_dst = os.path.join(dst, item)
             if not os.path.exists(new_dst):
                 os.mkdir(new_dst)
             recursive_copy_with_overwrite(path, new_dst)
+
+def copy_dir_if_exists(src, dest):
+    """
+    Copies contents of src directory to dst if src exists
+    """
+    if os.path.exists(src):
+        shutil.copytree(src, dest)

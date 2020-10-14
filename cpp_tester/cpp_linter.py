@@ -18,6 +18,7 @@ class CppLinter(Linter):
     custom_checks = None
     success_msg = "No linter errors found"
     failure_msg = "Linter returned errors"
+    files = {}
 
     def __init__(self, code, code_dir, cfg):
         super().__init__(code, code_dir, linter_cfg=cfg)
@@ -25,21 +26,22 @@ class CppLinter(Linter):
             self.custom_checks = self.cfg.get('checks', None)
             self.success_msg = self.cfg.get('success_message', self.success_msg)
             self.failure_msg = self.cfg.get('failure_message', self.failure_msg)
+            for lint in self.cfg.get('files', []):
+                self.files[lint['file']] = lint.get('points', 1)
+
 
     def run(self):
-        for obj in self.code:
-            max_score = obj.get('linter_points', 0)
+        for (obj, max_score) in self.files.items():
             if max_score == 0:
                 continue
-
-            main = obj['main']
 
             if self.custom_checks:
                 checks = self.custom_checks
             else:
                 checks = self.CLANGTDY_CHKS
 
-            cmd = ["clang-tidy", "-checks={}".format(checks), "--warnings-as-errors=*", main]
+            cmd = ["clang-tidy", "-checks={}".format(checks), "--warnings-as-errors=*", obj]
+
             try:
                 process = subprocess.run(
                     cmd,
@@ -60,7 +62,7 @@ class CppLinter(Linter):
                     score = max_score
 
             self.results.append(make_test_output(
-                test_name=self.format_name(main),
+                test_name=self.format_name(obj),
                 score=score,
                 max_score=max_score,
                 output=msg,

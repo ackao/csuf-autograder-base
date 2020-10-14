@@ -36,12 +36,13 @@ class CppCompiler(Compiler):
             for src in srcs:
                 if not os.path.isfile(os.path.join(self.code_dir, src)):
                     missing_srcs.append(src)
+                cmd = ["g++", src]
+                self.add_compile_command(file=src, command=" ".join(cmd))
 
             if missing_srcs:
                 msg = "Required file(s) are missing: {}".format(missing_srcs)
-            else: # Compile
+            elif 'googletest' not in obj: # Compile executable if not using googletest
                 cmd = ["g++", "-o", exec_name] + srcs
-                self.add_compile_command(file=obj['main'], command=" ".join(cmd))
                 try:
                     subprocess.run(cmd, cwd=self.code_dir, timeout=10, check=True)
                 except subprocess.TimeoutExpired:
@@ -52,20 +53,20 @@ class CppCompiler(Compiler):
                     msg = "Compilation succeeded"
                     success = True
 
-            if not success:
-                self.failures.append(self.get_executable_name(obj['main']))
+                if not success:
+                    self.failures.append(self.get_executable_name(obj['main']))
 
-            if max_score is not None:
-                if success:
-                    score = max_score
-                else:
-                    score = 0
-                self.results.append(make_test_output(
-                    test_name="Compilation Test: {}".format(obj['main']),
-                    score=score,
-                    max_score=max_score,
-                    output=msg,
-                    visibility="visible"))
+                if max_score is not None:
+                    if success:
+                        score = max_score
+                    else:
+                        score = 0
+                    self.results.append(make_test_output(
+                        test_name="Compilation Test: {}".format(obj['main']),
+                        score=score,
+                        max_score=max_score,
+                        output=msg,
+                        visibility="visible"))
 
     def add_compile_command(self, file="", command=""):
         """

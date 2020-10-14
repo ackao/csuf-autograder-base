@@ -8,6 +8,7 @@ import shutil
 import sys
 
 from autograder import Autograder
+from util import copy_dir_if_exists, recursive_copy_with_overwrite
 
 def main():
     """
@@ -17,20 +18,29 @@ def main():
     cwd = os.getcwd()
     sys.path.append(cwd)
     tmp_folder = os.path.join(cwd, 'tmp')
-    student_src_folder = os.path.join(tmp_folder, 'src')
-    build_folder = os.path.join(tmp_folder, 'build')
+    student_src_dir = os.path.join(tmp_folder, 'src')
+    build_dir = os.path.join(tmp_folder, 'build')
+    replacements_dir = os.path.join(os.path.dirname(cwd), 'replacements')
+    test_dir = os.path.join(tmp_folder, 'test')
 
     # copy student code from /autograder/submission to a temp folder
     if os.path.exists(tmp_folder):
         shutil.rmtree(tmp_folder)
     if TEST_ENV:
-        shutil.copytree('/home/ubuntu/autograder/submission/', student_src_folder)
+        shutil.copytree('/home/ubuntu/autograder/submission/', student_src_dir)
     else:
-        shutil.copytree('/autograder/submission/', student_src_folder)
-    os.mkdir(build_folder)
+        shutil.copytree('/autograder/submission/', student_src_dir)
+
+    if os.path.exists(replacements_dir):
+        recursive_copy_with_overwrite(replacements_dir, student_src_dir)
+
+    os.mkdir(build_dir)
+
+    # copy googletest cases into tmp folder
+    copy_dir_if_exists('../tests', test_dir)
 
     # create new autograder object from config
-    autograder = Autograder("../autograder_config.yml", student_src_folder, build_folder)
+    autograder = Autograder("../autograder_config.yml", student_src_dir, build_dir, test_dir)
 
     # try to compile student code -- results are in autograder.compiler.results
     autograder.compiler.compile()

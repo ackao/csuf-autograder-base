@@ -33,7 +33,7 @@ class GoogleTestRunner(TestRunner):
             test_path = os.path.join(self.test_dir, test)
             implems = cfg['implems']
             cmd = ['g++', '-std=c++17'] + implems
-            cmd += [test_path, '-lgtest_main', '-lgtest', '-lpthread']
+            cmd += [test_path, '-lgmock', '-lgtest', '-lpthread']
 
             fail = False
             try:

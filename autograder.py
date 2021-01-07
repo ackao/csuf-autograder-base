@@ -52,6 +52,7 @@ class Autograder():
             style_cfg = cfg.get('style_check', None)
 
             if cfg['language'] == 'c++':
+              if cfg['test_framework'] != 'cppaudit':
                 self.compiler = CppCompiler(cfg['code'], self.code_dir, self.build_dir)
                 if linter_cfg and linter_cfg.get('enable', True):
                     self.linter = CppLinter(cfg['code'], self.code_dir, linter_cfg)
@@ -66,6 +67,8 @@ class Autograder():
                 self.tester = BlackBoxTestRunner(cfg['blackbox_tests'], self.build_dir)
             elif cfg['test_framework'] == 'googletest':
                 self.tester = GoogleTestRunner(cfg['code'], test_dir, self.code_dir)
+            elif cfg['test_framework'] == 'cppaudit':
+                self.tester = CPPAuditTestRunner(cfg['code'])
 
     def __str__(self):
         return "Autograder(linter={}, stylecheck={}, code_dir={}".format(

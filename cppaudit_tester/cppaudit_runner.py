@@ -34,7 +34,7 @@ class CPPAuditRunner(TestRunner):
 
                 self.check_implementation(obj['cppaudit']['base_directory'], implementation_score)
                 self.check_compilation(obj['cppaudit']['base_directory'], compilation_score)
-                # self.check_functionality(obj['cppaudit']['base_directory'], functionality_score)
+                self.check_functionality(obj['cppaudit']['base_directory'], functionality_score)
                 # self.check_readability(obj['cppaudit']['base_directory'], readability_score)
                                 
 
@@ -46,7 +46,6 @@ class CPPAuditRunner(TestRunner):
         success = False
         score = None
         try:
-          print(os.path.join(self.code_dir, cwd))
           subprocess.check_output("make build", 
                                   cwd=os.path.join(self.code_dir, cwd), 
                                   timeout=10,
@@ -55,7 +54,7 @@ class CPPAuditRunner(TestRunner):
         except subprocess.TimeoutExpired:
           msg = "Compilation failed (timeout)"
         except subprocess.CalledProcessError as err:
-          msg = "Compilation failed\n" + err.output.decode() 
+          msg = "Compilation failed\n\n" + err.output.decode() 
         else:
           msg = "Compilation succeeded"
           success = True
@@ -72,7 +71,36 @@ class CPPAuditRunner(TestRunner):
             output=msg,
             visibility="visible"))
         
-    def check_functionality(self):
+    def check_functionality(self, cwd, functionality_score):
+        has_xml = True
+        score = None
+        output = None
+        try:
+          output = subprocess.check_output("make test", 
+                                  cwd=os.path.join(self.code_dir, cwd), 
+                                  timeout=30,
+                                  stderr=subprocess.STDOUT,
+                                  shell=True).decode()     
+        except subprocess.TimeoutExpired:
+          output = "Unit test failed (timeout)"
+          has_xml = False
+        except subprocess.CalledProcessError as err:
+          output = "Unit test failed\n\n" + err.output.decode()
+          if (not(os.path.exists(os.path.join(self.code_dir, cwd, "tools/output/unittest.xml")))):
+              has_xml = False
+
+        if (has_xml):
+            (feedback, score) = self.get_unittest_score(cwd, functionality_score)
+            output = feedback + "\n" + output
+        else:
+            score = 0
+
+        self.results.append(make_test_output(
+                            test_name="Unit Test: {}".format(cwd),
+                            score=score,
+                            max_score=functionality_score['all_pass'],
+                            output=output,
+                            visibility="visible"))
         pass
         # TODO: modify to fit the cpp audit unit test
         '''
@@ -116,7 +144,7 @@ class CPPAuditRunner(TestRunner):
         # TODO: retrieve data from stylecheck and formatcheck
         pass
 
-    def parse_xml(self, file):
+    def get_unittest_score(self, cwd, functionality_score):
         """
         Googletest needs to use RecordProperty(key, value) with these keys:
 
@@ -126,27 +154,24 @@ class CPPAuditRunner(TestRunner):
         'all_or_nothing': if True, a single failure in a test case => no points
                                    otherwise => max_score, default: False
         """
+        score = 0
+        feedback = None
+        file = os.path.join(self.code_dir, cwd, "tools/output/unittest.xml")
         root = ET.parse(file).getroot()
-        for test in root.iter('testcase'):
-            name = "{}:{}".format(test.attrib['classname'], test.attrib['name'])
-            points_per_case = int(test.attrib.get('points', 1))
-            max_score = int(test.attrib.get('max_score', points_per_case))
-            visibility = test.attrib.get('visibility', None)
-            all_or_nothing = int(test.attrib.get('all_or_nothing', 0))
-            output = ''
-
-            num_fails = 0
-            for fail in test.iter('failure'):
-                num_fails += 1
-                output += fail.attrib['message'] + '\n'
-
-            if all_or_nothing and num_fails > 0:
-                score = 0
-            else:
-                score = max(max_score - num_fails * points_per_case, 0)
-
-            self.results.append(make_test_output(test_name=name,
-                                                 score=score,
-                                                 max_score=max_score,
-                                                 output=output,
-                                                 visibility=visibility))
+        total = len([x for x in root.iter('testcase')])
+        fails = len([x for x in root.iter('failure')])
+        skips = len([x for x in root.iter('skipped')])
+        corrects = total - fails - skips
+        if (corrects == total):
+            feedback = "All tests passed!"
+            score = functionality_score['all_pass']
+        elif (corrects > total / 2):
+            feedback = "Over half of the tests passed."
+            score = functionality_score['over_half_pass']
+        elif (corrects > 0):
+            feedback = "Less than half of the tests passed."
+            score = functionality_score['less_half_pass']
+        else:
+            feedback = "No tests passed."
+            score = functionality_score['no_pass']
+        return (feedback, score)

@@ -35,7 +35,7 @@ class CPPAuditRunner(TestRunner):
                 self.check_implementation(obj['cppaudit']['base_directory'], implementation_score)
                 self.check_compilation(obj['cppaudit']['base_directory'], compilation_score)
                 self.check_functionality(obj['cppaudit']['base_directory'], functionality_score)
-                # self.check_readability(obj['cppaudit']['base_directory'], readability_score)
+                self.check_readability(obj['cppaudit']['base_directory'], readability_score)
                                 
 
     def check_implementation(self, cwd, max_score):
@@ -52,11 +52,11 @@ class CPPAuditRunner(TestRunner):
                                   stderr=subprocess.STDOUT,
                                   shell=True)
         except subprocess.TimeoutExpired:
-          msg = "Compilation failed (timeout)"
+          msg = "Compilation failed (timeout)."
         except subprocess.CalledProcessError as err:
-          msg = "Compilation failed\n\n" + err.output.decode() 
+          msg = "Compilation failed.\n\n" + err.output.decode() 
         else:
-          msg = "Compilation succeeded"
+          msg = "Compilation succeeded."
           success = True
 
         if success:
@@ -76,22 +76,22 @@ class CPPAuditRunner(TestRunner):
         score = None
         output = None
         try:
-          output = subprocess.check_output("make test", 
+          output = subprocess.check_output("make noskiptest", 
                                   cwd=os.path.join(self.code_dir, cwd), 
                                   timeout=30,
                                   stderr=subprocess.STDOUT,
                                   shell=True).decode()     
         except subprocess.TimeoutExpired:
-          output = "Unit test failed (timeout)"
+          output = "Unit test failed (timeout)."
           has_xml = False
         except subprocess.CalledProcessError as err:
-          output = "Unit test failed\n\n" + err.output.decode()
+          output = "Unit test failed.\n\n" + err.output.decode()
           if (not(os.path.exists(os.path.join(self.code_dir, cwd, "tools/output/unittest.xml")))):
               has_xml = False
 
         if (has_xml):
             (feedback, score) = self.get_unittest_score(cwd, functionality_score)
-            output = feedback + "\n" + output
+            output = feedback + "\n\n" + output
         else:
             score = 0
 
@@ -101,48 +101,76 @@ class CPPAuditRunner(TestRunner):
                             max_score=functionality_score['all_pass'],
                             output=output,
                             visibility="visible"))
-        pass
-        # TODO: modify to fit the cpp audit unit test
-        '''
-         for (test, cfg) in self.test_cfg.items():
-            test_path = os.path.join(self.test_dir, test)
-            implems = cfg['implems']
-            cmd = ['g++', '-std=c++17'] + implems
-            cmd += [test_path, '-lgmock', '-lgtest', '-lpthread']
-
-            fail = False
-            try:
-                subprocess.check_output(
-                    cmd,
-                    cwd=self.test_dir,
-                    timeout=10,
-                    stderr=subprocess.STDOUT)
-            except subprocess.TimeoutExpired:
-                msg = "Test case compilation timed out for {}".format(implems)
-                fail = True
-            except subprocess.CalledProcessError:
-                msg = "Issue compiling test cases for {}:\n".format(implems)
-                fail = True
-            else:
-                try:
-                    run_cmd = ['./a.out', '--gtest_output=xml']
-                    subprocess.check_output(run_cmd, cwd=self.test_dir)
-                except subprocess.CalledProcessError:
-                    msg = "Issue running some test cases for {}:\n".format(implems)
-                    fail = True
-
-            if fail:
-                self.results.append(make_test_output(score=0,
-                                                     max_score=cfg['max_score'],
-                                                     output=msg,
-                                                     visibility="visible"))
-            else:
-                self.parse_xml(os.path.join(self.test_dir, 'test_detail.xml'))
-        '''
         
-    def check_readability(self):
-        # TODO: retrieve data from stylecheck and formatcheck
-        pass
+    def check_readability(self, cwd, readability_score):
+        self.check_style(cwd, readability_score['style'])
+        self.check_format(cwd, readability_score['format'])          
+
+    def check_style(self, cwd, style_score):
+        success = False
+        score = None
+        try:
+          output = subprocess.check_output("make stylecheck", 
+                                           cwd=os.path.join(self.code_dir, cwd), 
+                                           timeout=10,
+                                           stderr=subprocess.STDOUT,
+                                           shell=True).decode()
+        except subprocess.TimeoutExpired:
+          msg = "Style checker failed (timeout)."
+        except subprocess.CalledProcessError as err:
+          msg = "Style checker failed.\n\n" + err.output.decode() 
+        else:
+          msg = "Style checker succeeded.\n\n"
+          msg += output
+          success = True
+
+        if success:
+            score = style_score
+        else:
+            score = 0
+            
+        self.results.append(make_test_output(
+            test_name="Style Check: {}".format(cwd),
+            score=score,
+            max_score=style_score,
+            output=msg,
+            visibility="visible"))
+
+    def check_format(self, cwd, format_score):
+        success = False
+        score = None
+        output = None
+        try:
+          output = subprocess.check_output("make formatcheck", 
+                                           cwd=os.path.join(self.code_dir, cwd), 
+                                           timeout=10,
+                                           stderr=subprocess.STDOUT,
+                                           shell=True).decode()
+        except subprocess.TimeoutExpired:
+          msg = "Format checker failed (timeout)."
+        except subprocess.CalledProcessError as err:
+          msg = "Format checker failed.\n\n" + err.output.decode() 
+        else:
+          if ("@@" in output):
+            msg = "Format checker failed. Please modify your file format " \
+                  "according to the following suggestions: \n\n"
+            msg += output
+          else:
+            msg = "Format checker succeeded!\n\n"
+            msg += output
+            success = True
+
+        if success:
+            score = format_score
+        else:
+            score = 0
+            
+        self.results.append(make_test_output(
+            test_name="Format Check: {}".format(cwd),
+            score=score,
+            max_score=format_score,
+            output=msg,
+            visibility="visible"))
 
     def get_unittest_score(self, cwd, functionality_score):
         """

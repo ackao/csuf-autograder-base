@@ -133,9 +133,12 @@ class CPPAuditRunner(TestRunner):
         except subprocess.CalledProcessError as err:
           msg = "Style checker failed.\n\n" + err.output.decode() 
         else:
-          msg = "Style checker succeeded.\n\n"
+          if (": warning: " in output):
+              msg = "Style checker failed.\n\n"
+          else:
+              msg = "Style checker succeeded.\n\n"
+              success = True
           msg += output
-          success = True
 
         if success:
             score = style_score

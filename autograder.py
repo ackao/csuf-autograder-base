@@ -10,7 +10,7 @@ from cpp_tester.cpp_compiler import CppCompiler
 from cpp_tester.cpp_format import CppFormatter
 from cpp_tester.cpp_linter import CppLinter
 from cpp_tester.googletest_runner import GoogleTestRunner
-
+from cppaudit_tester.cppaudit_runner import CPPAuditRunner
 class Autograder():
     """
     Defines an autograder object based on a YAML config file.
@@ -43,6 +43,7 @@ class Autograder():
             self.code_dir = code_dir
             self.build_dir = build_dir
 
+            self.compiler = None
             self.linter = None
             self.stylecheck = None
             self.tester = None
@@ -68,7 +69,7 @@ class Autograder():
             elif cfg['test_framework'] == 'googletest':
                 self.tester = GoogleTestRunner(cfg['code'], test_dir, self.code_dir)
             elif cfg['test_framework'] == 'cppaudit':
-                self.tester = CPPAuditTestRunner(cfg['code'])
+                self.tester = CPPAuditRunner(cfg['code'], self.code_dir)
 
     def __str__(self):
         return "Autograder(linter={}, stylecheck={}, code_dir={}".format(
@@ -80,7 +81,9 @@ class Autograder():
         """
         Return Gradescope-formatted JSON with all results
         """
-        tests = self.compiler.results
+        tests = []
+        if self.compiler:
+            tests = self.compiler.results
         if self.linter:
             tests += self.linter.results
         if self.stylecheck:

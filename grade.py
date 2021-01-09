@@ -27,7 +27,8 @@ def main():
     if os.path.exists(tmp_folder):
         shutil.rmtree(tmp_folder)
     if TEST_ENV:
-        shutil.copytree('/home/ubuntu/autograder/submission/', student_src_dir)
+        # shutil.copytree('/home/ubuntu/autograder/submission/', student_src_dir)
+        shutil.copytree('/home/pinventado/code/ag/autograder/submission/', student_src_dir)
     else:
         shutil.copytree('/autograder/submission/', student_src_dir)
 
@@ -43,12 +44,13 @@ def main():
     autograder = Autograder("../autograder_config.yml", student_src_dir, build_dir, test_dir)
 
     # try to compile student code -- results are in autograder.compiler.results
-    autograder.compiler.compile()
-    if DEBUG:
-        print("Failed to compile: {}".format(autograder.compiler.get_failures()))
-        print(autograder.compiler.results)
-    with open(os.path.join(tmp_folder, 'compile_commands.json'), 'w+') as outfile:
-        json.dump(autograder.compiler.compile_commands, outfile)
+    if autograder.compiler:
+        autograder.compiler.compile()
+        if DEBUG:
+            print("Failed to compile: {}".format(autograder.compiler.get_failures()))
+            print(autograder.compiler.results)
+        with open(os.path.join(tmp_folder, 'compile_commands.json'), 'w+') as outfile:
+            json.dump(autograder.compiler.compile_commands, outfile)
 
     # run linter
     if autograder.linter:
@@ -63,13 +65,15 @@ def main():
             print(autograder.stylecheck.results)
 
     # run test cases (get json output from googletest)
-    autograder.tester.set_skip(autograder.compiler.get_failures())
+    if autograder.compiler:
+      autograder.tester.set_skip(autograder.compiler.get_failures())
     autograder.tester.run_test()
     if DEBUG:
         print(autograder.tester.results)
 
     if TEST_ENV:
-        outfile_path = '/home/ubuntu/autograder/results/results.json'
+        # outfile_path = '/home/ubuntu/autograder/results/results.json'
+        outfile_path = '/home/pinventado/code/ag/autograder/results/results.json'
     else:
         outfile_path = '/autograder/results/results.json'
 

@@ -1,5 +1,5 @@
 """
-    CPPAuditTestRunner class
+    CPPAuditRunner class
 
     Runs CPPAudit tests
 """
@@ -11,51 +11,51 @@ import xml.etree.ElementTree as ET
 from test_runner import TestRunner
 from util import make_test_output
 
-class GoogleTestRunner(TestRunner):
+class CPPAuditRunner(TestRunner):
     """
     Runs CPPAudit tests
     """
-    test_cfg = {}
     results = {}
-    test_dir = None
-
     code_cfg = None
+    code_dir = None
 
-    def __init__(self, code_cfg):
+    def __init__(self, code_cfg, code_dir):
         self.code_cfg = code_cfg
+        self.code_dir = code_dir
         super().__init__()
 
     def run_test(self):
         for obj in self.code_cfg:
-            implementation_score = obj['implementation_score']
-            compilation_score = obj['compilation_score']
-            functionality_score = obj['functionality_score']
-            readability_score = obj['readability_score']
+            if 'cppaudit' in obj:      
+                implementation_score = obj['cppaudit'].get('implementation_score')
+                compilation_score = obj['cppaudit']['compilation_score']
+                functionality_score = obj['cppaudit']['functionality_score']
+                readability_score = obj['cppaudit']['readability_score']
 
-            self.check_implementation(implementation_score)
-            self.check_compilation(compilation_score)
-            self.check_functionality(functionality_score)
-            self.check_readability(readability_score)
+                self.check_implementation(obj['cppaudit']['base_directory'], implementation_score)
+                self.check_compilation(obj['cppaudit']['base_directory'], compilation_score)
+                # self.check_functionality(obj['cppaudit']['base_directory'], functionality_score)
+                # self.check_readability(obj['cppaudit']['base_directory'], readability_score)
                                 
 
-    def check_implementation(self, max_score):
+    def check_implementation(self, cwd, max_score):
         # TODO: Find a way to distinguish whether a student submitted something or not 
         pass
 
-    def check_compilation(self, max_score):
+    def check_compilation(self, cwd, max_score):
         success = False
         score = None
-        cmd = ["make build"]
         try:
-          subprocess.check_output(cmd, 
-                                  cwd=self.code_dir, 
+          print(os.path.join(self.code_dir, cwd))
+          subprocess.check_output("make build", 
+                                  cwd=os.path.join(self.code_dir, cwd), 
                                   timeout=10,
                                   stderr=subprocess.STDOUT,
-                                  check=True)
+                                  shell=True)
         except subprocess.TimeoutExpired:
           msg = "Compilation failed (timeout)"
         except subprocess.CalledProcessError as err:
-          msg = "Compilation failed\n" + err.output 
+          msg = "Compilation failed\n" + err.output.decode() 
         else:
           msg = "Compilation succeeded"
           success = True
@@ -64,15 +64,16 @@ class GoogleTestRunner(TestRunner):
             score = max_score
         else:
             score = 0
+            
         self.results.append(make_test_output(
-            test_name="Compilation Test: {}".format(obj['problem']),
+            test_name="Compilation Test: {}".format(cwd),
             score=score,
             max_score=max_score,
             output=msg,
             visibility="visible"))
         
-
     def check_functionality(self):
+        pass
         # TODO: modify to fit the cpp audit unit test
         '''
          for (test, cfg) in self.test_cfg.items():

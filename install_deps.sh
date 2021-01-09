@@ -2,8 +2,8 @@
 
 apt-get update
 apt-get install -y gcc
-apt-get install -y cmake libgtest-dev
+apt-get install -y cmake
 apt-get install -y clang clang-tidy clang-format
 apt-get install -y python3 python3-pip
 pip3 install pyyaml
-mkdir /usr/tmp && cd /usr/tmp && cmake /usr/src/googletest && make install && rm -rf /usr/tmp
+cd /tmp/ && git clone https://github.com/google/googletest && cd googletest && mkdir build && cd build && cmake .. -DCMAKE_CXX_STANDARD=17 && make && make install && rmf -rf /tmp/googletest

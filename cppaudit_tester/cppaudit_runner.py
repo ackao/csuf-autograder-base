@@ -86,12 +86,18 @@ class CPPAuditRunner(TestRunner):
           has_xml = False
         except subprocess.CalledProcessError as err:
           output = "Unit test failed.\n\n" + err.output.decode()
+          # if (err.stderr):
+          #   output += err.stderr.decode()
           if (not(os.path.exists(os.path.join(self.code_dir, cwd, "tools/output/unittest.xml")))):
               has_xml = False
 
         if (has_xml):
             (feedback, score) = self.get_unittest_score(cwd, functionality_score)
+            if ("ERROR: AddressSanitizer" in output or "ERROR: LeakSanitizer" in output):
+                score -= functionality_score['mem_management_deduction']
+                feedback += "\n\nMemory management issues were detected in your code."
             output = feedback + "\n\n" + output
+    
         else:
             score = 0
 

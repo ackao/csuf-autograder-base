@@ -38,9 +38,16 @@ class CPPAuditRunner(TestRunner):
                 self.check_readability(obj['cppaudit']['base_directory'], readability_score)
                                 
 
-    def check_implementation(self, cwd, max_score):
-        # TODO: Find a way to distinguish whether a student submitted something or not 
-        pass
+    def check_implementation(self, cwd, implementation_score):
+        msg = "You are given full points assuming you submitted code that attempts to solve the problem. " \
+              "However, your score can change after manual grading if the grader finds that the code does " \
+              "not sufficiently solve the problem."
+        self.results.append(make_test_output(
+                            test_name="Implementation Test: {}".format(cwd),
+                            score=implementation_score,
+                            max_score=implementation_score,
+                            output=msg,
+                            visibility="visible"))
 
     def check_compilation(self, cwd, max_score):
         success = False

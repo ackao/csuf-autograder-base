@@ -63,7 +63,7 @@ class CPPAuditRunner(TestRunner):
         except subprocess.CalledProcessError as err:
           msg = "Compilation failed.\n\n" + err.output.decode() 
         else:
-          msg = "Compilation succeeded."
+          msg = "Compilation succeeded!"
           success = True
 
         if success:
@@ -136,7 +136,7 @@ class CPPAuditRunner(TestRunner):
           if (": warning: " in output):
               msg = "Style checker failed.\n\n"
           else:
-              msg = "Style checker succeeded.\n\n"
+              msg = "Style checker succeeded!\n\n"
               success = True
           msg += output
 

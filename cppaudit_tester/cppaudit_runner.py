@@ -6,10 +6,12 @@
 
 import os
 import subprocess
+import shutil
+import difflib
 import xml.etree.ElementTree as ET
 
 from test_runner import TestRunner
-from util import make_test_output
+from util import make_test_output, recursive_copy_with_overwrite
 
 class CPPAuditRunner(TestRunner):
     """
@@ -22,32 +24,95 @@ class CPPAuditRunner(TestRunner):
     def __init__(self, code_cfg, code_dir):
         self.code_cfg = code_cfg
         self.code_dir = code_dir
+        
         super().__init__()
 
     def run_test(self):
         for obj in self.code_cfg:
             if 'cppaudit' in obj:      
-                implementation_score = obj['cppaudit'].get('implementation_score')
+                implementation_score = obj['cppaudit']['implementation_score']
                 compilation_score = obj['cppaudit']['compilation_score']
                 functionality_score = obj['cppaudit']['functionality_score']
                 readability_score = obj['cppaudit']['readability_score']
 
-                self.check_implementation(obj['cppaudit']['base_directory'], implementation_score)
-                self.check_compilation(obj['cppaudit']['base_directory'], compilation_score)
-                self.check_functionality(obj['cppaudit']['base_directory'], functionality_score)
-                self.check_readability(obj['cppaudit']['base_directory'], readability_score)
+                self.overwrite_test_files(obj['cppaudit']['starter_code'], obj['cppaudit']['base_directory'])
+                implem_result = self.check_implementation(obj['cppaudit']['starter_code'], obj['cppaudit']['base_directory'], obj['cppaudit'])
+                if (implem_result > 0):
+                  self.check_compilation(obj['cppaudit']['base_directory'], compilation_score)
+                  self.check_functionality(obj['cppaudit']['base_directory'], functionality_score)
+                  self.check_readability(obj['cppaudit']['base_directory'], readability_score)
                                 
+    def overwrite_test_files(self, starter_code, problem_location):
+        # copy Makefile
+        # copy tools/cppaudit
+        starter_code_loc = os.path.join("../", starter_code['location'])
 
-    def check_implementation(self, cwd, implementation_score):
-        msg = "You are given full points assuming you submitted code that attempts to solve the problem. " \
-              "However, your score can change after manual grading if the grader finds that the code does " \
-              "not sufficiently solve the problem."
+        makefile_starter_loc = os.path.join(starter_code_loc, "Makefile")
+        makefile_loc = os.path.join(self.code_dir, problem_location, "Makefile")
+        shutil.copy(makefile_starter_loc, makefile_loc)
+
+        unittest_starter_loc = os.path.join(starter_code_loc, "tools")
+        unittest_loc = os.path.join(self.code_dir, problem_location, "tools")
+        recursive_copy_with_overwrite(unittest_starter_loc, unittest_loc)
+
+    def check_implementation(self, starter_code, problem_location, cppaudit):
+        changes = 0
+        score = 0
+        msg = None
+        starter_code_loc = os.path.join("../", starter_code['location'])
+        for file in starter_code['files']:
+          starter_file = open(os.path.join(starter_code_loc, file)).readlines()
+          student_file = open(os.path.join(self.code_dir, problem_location, file)).readlines()
+          for line in difflib.unified_diff(starter_file, student_file, lineterm='', n=0):
+              for prefix in ('---', '+++', '@@'):
+                  if line.startswith(prefix):
+                      break
+              else:
+                  changes += 1
+            # compare starter file vs student file
+            
+        if (changes < 5):
+            msg = "The grader did not detect a solution to the problem."
+        else:
+            msg = "You are given full points assuming you submitted code that attempts to solve the problem. " \
+                  "However, your score can change after manual grading if the grader finds that the code does " \
+                  "not sufficiently solve the problem."
+            score = cppaudit['implementation_score']
+            
         self.results.append(make_test_output(
-                            test_name="Implementation Test: {}".format(cwd),
-                            score=implementation_score,
-                            max_score=implementation_score,
+                            test_name="Implementation Test: {}".format(problem_location),
+                            score=score,
+                            max_score=cppaudit['implementation_score'],
                             output=msg,
                             visibility="visible"))
+
+        if (score == 0):
+            self.results.append(make_test_output(
+                                test_name="Compilation Test: {}".format(problem_location),
+                                score=0,
+                                max_score=cppaudit['compilation_score'],
+                                output=msg,
+                                visibility="visible"))
+            self.results.append(make_test_output(
+                                test_name="Unit Test: {}".format(problem_location),
+                                score=0,
+                                max_score=cppaudit['functionality_score']['all_pass'],
+                                output=msg,
+                                visibility="visible"))
+            self.results.append(make_test_output(
+                                test_name="Style Check: {}".format(problem_location),
+                                score=0,
+                                max_score=cppaudit['readability_score']['style'],
+                                output=msg,
+                                visibility="visible"))
+            self.results.append(make_test_output(
+                                test_name="Format Check: {}".format(problem_location),
+                                score=0,
+                                max_score=cppaudit['readability_score']['format'],
+                                output=msg,
+                                visibility="visible"))
+            
+        return score
 
     def check_compilation(self, cwd, max_score):
         success = False

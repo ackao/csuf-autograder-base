@@ -60,6 +60,8 @@ class CPPAuditRunner(TestRunner):
         score = 0
         msg = None
         starter_code_loc = os.path.join("../", starter_code['location'])
+        
+        # Code based on answer from: https://stackoverflow.com/questions/19120489/compare-two-files-report-difference-in-python
         for file in starter_code['files']:
           starter_file = open(os.path.join(starter_code_loc, file)).readlines()
           student_file = open(os.path.join(self.code_dir, problem_location, file)).readlines()
@@ -69,8 +71,7 @@ class CPPAuditRunner(TestRunner):
                       break
               else:
                   changes += 1
-            # compare starter file vs student file
-            
+              
         if (changes < 5):
             msg = "The grader did not detect a solution to the problem."
         else:
@@ -198,7 +199,7 @@ class CPPAuditRunner(TestRunner):
         except subprocess.CalledProcessError as err:
           msg = "Style checker failed.\n\n" + err.output.decode() 
         else:
-          if (": warning: " in output):
+          if (": warning: " in output or ": error:" in output):
               msg = "Style checker failed.\n\n"
           else:
               msg = "Style checker succeeded!\n\n"

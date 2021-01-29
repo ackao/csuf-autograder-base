@@ -55,10 +55,10 @@ class Autograder():
             linter_cfg = cfg.get('linter', None)
             style_cfg = cfg.get('style_check', None)
             if cfg.get('accept_github_zip', False):
-                subdirs = [elem for elem in os.listdir(self.code_dir) if os.path.isdir(os.path.join(self.code_dir, elem))]
-                if len(subdirs) == 1:
+                subdirs = [elem for elem in os.listdir(self.code_dir)]
+                if len(subdirs) == 1 and os.path.isdir(os.path.join(self.code_dir, subdirs[0])):
                     recursive_copy_with_overwrite(os.path.join(self.code_dir, subdirs[0]), self.code_dir)
-                shutil.rmtree(os.path.join(self.code_dir, subdirs[0]))   
+                    shutil.rmtree(os.path.join(self.code_dir, subdirs[0]))   
             
             if cfg['language'] == 'c++':
               if cfg['test_framework'] != 'cppaudit':

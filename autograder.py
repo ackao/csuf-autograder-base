@@ -4,6 +4,9 @@
 
 import json
 import yaml
+import os
+import shutil
+from util import recursive_copy_with_overwrite
 
 from general_tester.blackboxtest_runner import BlackBoxTestRunner
 from cpp_tester.cpp_compiler import CppCompiler
@@ -51,7 +54,19 @@ class Autograder():
 
             linter_cfg = cfg.get('linter', None)
             style_cfg = cfg.get('style_check', None)
-
+            if cfg.get('accept_github_zip', False):
+                # check if self.code_dir contains a single folder, then copy all its contents
+                subdirs = [elem for elem in os.listdir(self.code_dir) if os.path.isdir(os.path.join(self.code_dir, elem))]
+                #print([os.path.isdir(os.path.join(self.code_dir,elem)) for elem in os.listdir(self.code_dir)])
+                #print([elem for elem in os.listdir(self.code_dir) if ])
+                # print([elem for elem in filter(os.path.isdir, os.listdir(self.code_dir))])
+                # print([elem for elem in filter(os.path.isdir, os.listdir(self.code_dir))])
+                if len(subdirs) == 1:
+                    print(os.path.join(self.code_dir, subdirs[0]))
+                    print(self.code_dir)
+                    recursive_copy_with_overwrite(os.path.join(self.code_dir, subdirs[0]), self.code_dir)
+                shutil.rmtree(os.path.join(self.code_dir, subdirs[0]))   
+            
             if cfg['language'] == 'c++':
               if cfg['test_framework'] != 'cppaudit':
                 self.compiler = CppCompiler(cfg['code'], self.code_dir, self.build_dir)

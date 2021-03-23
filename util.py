@@ -54,6 +54,8 @@ def recursive_copy_with_overwrite(src, dst):
     """
     Copies contents of src directory to dst, overwriting existing files
     """
+    if not(os.path.isdir(dst)):
+        os.makedirs(dst)
     for item in os.listdir(src):
         path = os.path.join(src, item)
         if os.path.isfile(path):

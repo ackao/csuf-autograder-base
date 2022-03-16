@@ -1,5 +1,9 @@
 #!/bin/bash
 
+mv /bin/uname /bin/uname.orig
+printf '#!/bin/bash\n\nif [[ "$1" == "-r" ]] ;then\n echo '4.9.250'\n exit\nelse\n uname.orig "$@"\nfi' > /bin/uname
+chmod 755 /bin/uname
+
 apt-get update
 apt-get install -y gcc
 apt-get install -y cmake libgtest-dev

@@ -77,11 +77,23 @@ class GoogleTestRunner(TestRunner):
         root = ET.parse(file).getroot()
         for test in root.iter('testcase'):
             name = "{}:{}".format(test.attrib['classname'], test.attrib['name'])
-            points_per_case = int(test.attrib.get('points', 1))
-            max_score = int(test.attrib.get('max_score', points_per_case))
-            visibility = test.attrib.get('visibility', None)
-            all_or_nothing = int(test.attrib.get('all_or_nothing', 0))
             output = ''
+
+            points_per_case = 1
+            visibility = None
+            all_or_nothing = 0
+            for prop in test.iter('property'):
+                if prop.attrib['name'] == 'points':
+                    points_per_case = int(prop.attrib['value'])
+                if prop.attrib['name'] == 'visibility':
+                    visibility = prop.attrib['value']
+                if prop.attrib['name'] == 'all_or_nothing':
+                    all_or_nothing = int(prop.attrib['value'])
+
+            max_score = points_per_case
+            for prop in test.iter('property'):
+                if prop.attrib['name'] == 'max_score':
+                    max_score = int(prop.attrib['value'])
 
             num_fails = 0
             for fail in test.iter('failure'):

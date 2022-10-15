@@ -51,6 +51,7 @@ class BlackBoxTestRunner(TestRunner):
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    bufsize=0,
                     cwd=self.build_dir)
                 stdin = encode_as_bytes(test.get('stdin', ""))
 
